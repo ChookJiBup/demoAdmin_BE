@@ -6,7 +6,7 @@ import com.example.demoadmin.admin.command.domain.AdminStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * 축제 1관리자 회원가입 결과를 반환하는 HTTP 응답 DTO이다.
+ * 관리자 회원가입 결과를 반환하는 HTTP 응답 DTO이다.
  */
 @Schema(description = "관리자 회원가입 응답")
 public record AdminSignupResponse(

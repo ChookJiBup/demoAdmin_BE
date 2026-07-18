@@ -7,9 +7,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * 축제 1관리자 계정 생성을 위한 HTTP 요청 DTO이다.
+ * 관리자 계정 생성을 위한 HTTP 요청 DTO이다.
  */
-@Schema(description = "축제 1관리자 회원가입 요청")
+@Schema(description = "관리자 회원가입 요청")
 public record AdminSignupRequest(
         @Schema(description = "로그인 이메일", example = "admin@mapo.go.kr")
         @Email

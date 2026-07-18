@@ -64,9 +64,9 @@ public class AdminAuthController {
     }
 
     /**
-     * 축제별 1관리자 계정을 생성한다.
+     * 관리자 계정을 생성한다.
      */
-    @Operation(summary = "축제 1관리자 회원가입")
+    @Operation(summary = "관리자 회원가입")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/auth/signup")
     public ApiResponse<AdminSignupResponse> signup(

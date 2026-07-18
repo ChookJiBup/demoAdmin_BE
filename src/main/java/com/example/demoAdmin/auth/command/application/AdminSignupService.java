@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 축제별 1관리자 회원가입 유스케이스를 처리한다.
+ * 관리자 회원가입 유스케이스를 처리한다.
  */
 @Service
 @RequiredArgsConstructor
@@ -27,7 +27,7 @@ public class AdminSignupService {
     private final AdminEmailVerificationService emailVerificationService;
 
     /**
-     * 축제에 아직 1관리자가 없을 때 새 1관리자 계정을 생성한다.
+     * 회원가입 요청을 검증하고 관리자 계정을 생성한다.
      */
     @Transactional
     public AdminSignupResponse signup(AdminSignupRequest request) {

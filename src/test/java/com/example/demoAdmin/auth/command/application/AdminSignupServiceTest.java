@@ -43,7 +43,7 @@ class AdminSignupServiceTest {
     class Signup {
 
         @Test
-        @DisplayName("이메일 인증이 완료되면 축제 1관리자로 가입한다")
+        @DisplayName("이메일 인증이 완료되면 관리자 계정으로 가입한다")
         void success_Signup_VerifiedEmail() {
             // given
             AdminSignupRequest request = signupRequest("admin@mapo.go.kr");
