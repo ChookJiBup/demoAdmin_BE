@@ -189,6 +189,13 @@ public class AdminAccount extends BaseTimeEntity {
     }
 
     /**
+     * 운영 보고서와 대시보드 조회 권한을 가진 계정인지 확인한다.
+     */
+    public boolean canViewOperationReport() {
+        return role != null && role.canViewOperationReport();
+    }
+
+    /**
      * 축제를 생성한 관리자를 해당 축제의 1관리자로 배정한다.
      */
     public void assignFestivalOwner(Long festivalId) {

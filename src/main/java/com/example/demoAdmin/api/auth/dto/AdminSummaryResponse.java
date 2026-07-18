@@ -33,6 +33,9 @@ public record AdminSummaryResponse(
         @Schema(description = "행사 정보 수정 가능 여부", example = "true")
         boolean canModifyFestivalInfo,
 
+        @Schema(description = "운영 보고서 조회 가능 여부", example = "true")
+        boolean canViewOperationReport,
+
         @Schema(description = "줄 끝 갱신 가능 여부", example = "true")
         boolean canUpdateQueueTail
 ) {
@@ -50,6 +53,7 @@ public record AdminSummaryResponse(
                 adminAccount.getRole(),
                 adminAccount.canInviteSubAdmin(),
                 adminAccount.canModifyFestivalInfo(),
+                adminAccount.canViewOperationReport(),
                 adminAccount.canUpdateQueueTail()
         );
     }

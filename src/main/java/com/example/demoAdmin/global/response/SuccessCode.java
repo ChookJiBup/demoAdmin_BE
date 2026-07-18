@@ -10,7 +10,9 @@ public enum SuccessCode {
     ADMIN_EMAIL_VERIFICATION_REQUEST_SUCCESS(21002, "관리자 이메일 인증 코드가 발송되었습니다."),
     ADMIN_EMAIL_VERIFICATION_CONFIRM_SUCCESS(21003, "관리자 이메일 인증이 완료되었습니다."),
     FESTIVAL_CREATE_SUCCESS(22000, "축제 기본 정보가 저장되었습니다."),
-    FESTIVAL_UPDATE_SUCCESS(22001, "축제 기본 정보가 수정되었습니다.");
+    FESTIVAL_UPDATE_SUCCESS(22001, "축제 기본 정보가 수정되었습니다."),
+    FESTIVAL_DASHBOARD_READ_SUCCESS(23000, "축제 대시보드 조회가 완료되었습니다."),
+    FESTIVAL_REPORT_SUMMARY_READ_SUCCESS(24000, "축제 결과 보고서 요약 조회가 완료되었습니다.");
 
     private final int code;
     private final String message;
