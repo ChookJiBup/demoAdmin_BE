@@ -19,12 +19,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 축제 기본 정보를 저장하는 Aggregate이다.
  */
 @Entity
+@Getter
 @Table(name = "festivals")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Festival extends BaseTimeEntity {
 
     @Id
@@ -83,9 +88,6 @@ public class Festival extends BaseTimeEntity {
     @Column(nullable = false, length = 50)
     private FestivalStatus status;
 
-    protected Festival() {
-    }
-
     private Festival(
             FestivalName name,
             FestivalDescription description,
@@ -120,8 +122,21 @@ public class Festival extends BaseTimeEntity {
         );
     }
 
-    public Long getId() {
-        return id;
+    /**
+     * 임시 기준의 축제 기본 정보를 수정한다.
+     */
+    public void updateBasicInfo(
+            FestivalName name,
+            FestivalDescription description,
+            FestivalAddress address,
+            FestivalPeriod period,
+            FestivalOperationTime operationTime
+    ) {
+        this.name = name;
+        this.description = description;
+        this.address = address;
+        this.period = period;
+        this.operationTime = operationTime;
     }
 
     public String getNameValue() {
@@ -152,7 +167,4 @@ public class Festival extends BaseTimeEntity {
         return operationTime.getEndTime();
     }
 
-    public FestivalStatus getStatus() {
-        return status;
-    }
 }

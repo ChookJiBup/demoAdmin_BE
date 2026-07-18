@@ -26,6 +26,8 @@ public enum ErrorCode {
     AUTH_EMAIL_DUPLICATED(40901, HttpStatus.CONFLICT, "이미 가입된 이메일입니다."),
     AUTH_FESTIVAL_OWNER_ALREADY_EXISTS(40902, HttpStatus.CONFLICT, "해당 축제에는 이미 1관리자가 존재합니다."),
 
+    FESTIVAL_NOT_FOUND(40401, HttpStatus.NOT_FOUND, "축제를 찾을 수 없습니다."),
+
     INTERNAL_SERVER_ERROR(50000, HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러가 발생하였습니다.");
 
     private final int code;
