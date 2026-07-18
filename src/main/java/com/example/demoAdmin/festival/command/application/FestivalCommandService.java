@@ -1,5 +1,8 @@
 package com.example.demoadmin.festival.command.application;
 
+import com.example.demoadmin.admin.command.domain.AdminAccount;
+import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
+import com.example.demoadmin.auth.support.AdminPrincipal;
 import com.example.demoadmin.festival.command.application.dto.CreateFestivalCommand;
 import com.example.demoadmin.festival.command.application.dto.UpdateFestivalCommand;
 import com.example.demoadmin.festival.command.domain.Festival;
@@ -9,7 +12,6 @@ import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
 import com.example.demoadmin.festival.command.domain.vo.FestivalOperationTime;
 import com.example.demoadmin.festival.command.domain.vo.FestivalPeriod;
-import com.example.demoadmin.auth.support.AdminPrincipal;
 import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -25,11 +27,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class FestivalCommandService {
 
     private final FestivalRepository festivalRepository;
+    private final AdminAccountRepository adminAccountRepository;
 
     /**
-     * 임시 기준의 축제 기본 정보를 저장한다.
+     * 임시 기준의 축제 기본 정보를 저장하고 생성자를 1관리자로 배정한다.
      */
-    public Festival create(CreateFestivalCommand command) {
+    public Festival create(
+            CreateFestivalCommand command,
+            AdminPrincipal principal
+    ) {
+        AdminAccount creator = findAuthenticatedAdmin(principal);
         Festival festival = Festival.create(
                 FestivalName.of(command.name()),
                 FestivalDescription.of(command.description()),
@@ -41,7 +48,10 @@ public class FestivalCommandService {
                 )
         );
 
-        return festivalRepository.save(festival);
+        Festival savedFestival = festivalRepository.save(festival);
+        creator.assignFestivalOwner(savedFestival.getId());
+
+        return savedFestival;
     }
 
     /**
@@ -74,10 +84,19 @@ public class FestivalCommandService {
             Long festivalId,
             AdminPrincipal principal
     ) {
-        if (principal == null
-                || !principal.role().canModifyFestivalInfo()
-                || !festivalId.equals(principal.festivalId())) {
+        AdminAccount adminAccount = findAuthenticatedAdmin(principal);
+        if (!adminAccount.canModifyFestivalInfo()
+                || !festivalId.equals(adminAccount.getFestivalId())) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
+    }
+
+    private AdminAccount findAuthenticatedAdmin(AdminPrincipal principal) {
+        if (principal == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return adminAccountRepository.findById(principal.adminId())
+                .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
     }
 }

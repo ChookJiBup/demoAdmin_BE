@@ -2,7 +2,6 @@ package com.example.demoadmin.auth.command.application;
 
 import com.example.demoadmin.admin.command.domain.AdminAccount;
 import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
-import com.example.demoadmin.admin.command.domain.AdminRole;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
@@ -43,18 +42,10 @@ public class AdminSignupService {
             throw new CustomException(ErrorCode.AUTH_EMAIL_DUPLICATED);
         }
 
-        if (adminAccountRepository.existsByFestivalIdAndRole(
-                request.festivalId(),
-                AdminRole.FESTIVAL_OWNER
-        )) {
-            throw new CustomException(ErrorCode.AUTH_FESTIVAL_OWNER_ALREADY_EXISTS);
-        }
-
-        AdminAccount adminAccount = AdminAccount.createFestivalOwner(
+        AdminAccount adminAccount = AdminAccount.createAdmin(
                 email,
                 name,
                 organization,
-                request.festivalId(),
                 passwordEncoder.encode(request.password())
         );
 

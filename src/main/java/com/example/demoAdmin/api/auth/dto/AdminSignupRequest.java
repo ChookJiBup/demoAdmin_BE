@@ -3,7 +3,6 @@ package com.example.demoadmin.api.auth.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -25,10 +24,6 @@ public record AdminSignupRequest(
         @NotBlank
         @Size(min = 2, max = 255)
         String organization,
-
-        @Schema(description = "관리 대상 축제 ID", example = "1")
-        @NotNull
-        Long festivalId,
 
         @Schema(description = "비밀번호", example = "Password!123")
         @NotBlank

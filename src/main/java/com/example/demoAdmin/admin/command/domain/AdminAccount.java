@@ -4,6 +4,8 @@ import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.common.domain.BaseTimeEntity;
+import com.example.demoadmin.global.response.CustomException;
+import com.example.demoadmin.global.response.ErrorCode;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -15,11 +17,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 축제별 관리자 계정 Aggregate이다.
  */
 @Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         name = "admin_accounts",
         uniqueConstraints = @UniqueConstraint(
@@ -54,14 +61,14 @@ public class AdminAccount extends BaseTimeEntity {
     )
     private AdminOrganization organization;
 
-    @Column(name = "festival_id", nullable = false)
+    @Column(name = "festival_id")
     private Long festivalId;
 
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private AdminRole role;
 
     @Enumerated(EnumType.STRING)
@@ -70,9 +77,6 @@ public class AdminAccount extends BaseTimeEntity {
 
     @Column(name = "invited_by_admin_id")
     private Long invitedByAdminId;
-
-    protected AdminAccount() {
-    }
 
     private AdminAccount(
             AdminEmail email,
@@ -91,6 +95,26 @@ public class AdminAccount extends BaseTimeEntity {
         this.role = role;
         this.status = AdminStatus.ACTIVE;
         this.invitedByAdminId = invitedByAdminId;
+    }
+
+    /**
+     * 아직 축제를 만들거나 초대받지 않은 일반 관리자 계정을 생성한다.
+     */
+    public static AdminAccount createAdmin(
+            AdminEmail email,
+            AdminName name,
+            AdminOrganization organization,
+            String passwordHash
+    ) {
+        return new AdminAccount(
+                email,
+                name,
+                organization,
+                null,
+                passwordHash,
+                null,
+                null
+        );
     }
 
     /**
@@ -147,68 +171,44 @@ public class AdminAccount extends BaseTimeEntity {
      * 서브관리자 초대 권한을 가진 계정인지 확인한다.
      */
     public boolean canInviteSubAdmin() {
-        return role.canInviteSubAdmin();
+        return role != null && role.canInviteSubAdmin();
     }
 
     /**
      * 행사 기본 정보 수정 권한을 가진 계정인지 확인한다.
      */
     public boolean canModifyFestivalInfo() {
-        return role.canModifyFestivalInfo();
+        return role != null && role.canModifyFestivalInfo();
     }
 
     /**
      * 현장 줄 끝 라인 갱신 권한을 가진 계정인지 확인한다.
      */
     public boolean canUpdateQueueTail() {
-        return role.canUpdateQueueTail();
+        return role != null && role.canUpdateQueueTail();
     }
 
-    public Long getId() {
-        return id;
-    }
+    /**
+     * 축제를 생성한 관리자를 해당 축제의 1관리자로 배정한다.
+     */
+    public void assignFestivalOwner(Long festivalId) {
+        if (festivalId == null || this.festivalId != null || this.role != null) {
+            throw new CustomException(ErrorCode.AUTH_ADMIN_ALREADY_ASSIGNED);
+        }
 
-    public AdminEmail getEmail() {
-        return email;
+        this.festivalId = festivalId;
+        this.role = AdminRole.FESTIVAL_OWNER;
     }
 
     public String getEmailValue() {
         return email.getValue();
     }
 
-    public AdminName getName() {
-        return name;
-    }
-
     public String getNameValue() {
         return name.getValue();
     }
 
-    public AdminOrganization getOrganization() {
-        return organization;
-    }
-
     public String getOrganizationValue() {
         return organization.getValue();
-    }
-
-    public Long getFestivalId() {
-        return festivalId;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public AdminRole getRole() {
-        return role;
-    }
-
-    public AdminStatus getStatus() {
-        return status;
-    }
-
-    public Long getInvitedByAdminId() {
-        return invitedByAdminId;
     }
 }

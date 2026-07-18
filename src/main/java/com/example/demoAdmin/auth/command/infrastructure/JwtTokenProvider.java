@@ -44,7 +44,9 @@ public class JwtTokenProvider {
         payload.put("sub", adminAccount.getId());
         payload.put("festivalId", adminAccount.getFestivalId());
         payload.put("email", adminAccount.getEmailValue());
-        payload.put("role", adminAccount.getRole().name());
+        payload.put("role", adminAccount.getRole() == null
+                ? null
+                : adminAccount.getRole().name());
         payload.put("iat", now.getEpochSecond());
         payload.put("exp", expiresAt.getEpochSecond());
 
@@ -78,9 +80,9 @@ public class JwtTokenProvider {
 
         return new AdminPrincipal(
                 payload.path("sub").asLong(),
-                payload.path("festivalId").asLong(),
+                nullableLong(payload.get("festivalId")),
                 payload.path("email").asText(),
-                AdminRole.valueOf(payload.path("role").asText())
+                nullableRole(payload.get("role"))
         );
     }
 
@@ -107,6 +109,14 @@ public class JwtTokenProvider {
         } catch (Exception exception) {
             throw new CustomException(ErrorCode.AUTH_TOKEN_INVALID);
         }
+    }
+
+    private Long nullableLong(JsonNode node) {
+        return node == null || node.isNull() ? null : node.asLong();
+    }
+
+    private AdminRole nullableRole(JsonNode node) {
+        return node == null || node.isNull() ? null : AdminRole.valueOf(node.asText());
     }
 
     private String sign(String unsignedToken) {

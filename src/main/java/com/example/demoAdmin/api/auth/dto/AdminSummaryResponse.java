@@ -12,7 +12,7 @@ public record AdminSummaryResponse(
         @Schema(description = "관리자 ID", example = "1")
         Long adminId,
 
-        @Schema(description = "관리 대상 축제 ID", example = "1")
+        @Schema(description = "관리 대상 축제 ID. 축제 생성 전에는 null", example = "1")
         Long festivalId,
 
         @Schema(description = "로그인 이메일", example = "admin@mapo.go.kr")
@@ -24,7 +24,7 @@ public record AdminSummaryResponse(
         @Schema(description = "소속 조직", example = "마포구청 소속")
         String organization,
 
-        @Schema(description = "관리자 역할", example = "FESTIVAL_OWNER")
+        @Schema(description = "관리자 역할. 축제 생성 전에는 null", example = "FESTIVAL_OWNER")
         AdminRole role,
 
         @Schema(description = "서브관리자 초대 가능 여부", example = "true")

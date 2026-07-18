@@ -6,7 +6,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.example.demoadmin.admin.command.domain.AdminAccount;
+import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.AdminRole;
+import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
+import com.example.demoadmin.admin.command.domain.vo.AdminName;
+import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.auth.support.AdminPrincipal;
 import com.example.demoadmin.festival.command.application.dto.CreateFestivalCommand;
 import com.example.demoadmin.festival.command.application.dto.UpdateFestivalCommand;
@@ -30,6 +35,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class FestivalCommandServiceTest {
@@ -40,24 +46,37 @@ class FestivalCommandServiceTest {
     @Mock
     private FestivalRepository festivalRepository;
 
+    @Mock
+    private AdminAccountRepository adminAccountRepository;
+
     @Nested
     @DisplayName("create")
     class Create {
 
         @Test
-        @DisplayName("축제 기본 정보를 저장한다")
-        void success_Create() {
+        @DisplayName("축제 기본 정보를 저장하고 생성자를 1관리자로 배정한다")
+        void success_Create_AssignFestivalOwner() {
             // given
             CreateFestivalCommand command = createCommand();
+            AdminAccount adminAccount = unassignedAdmin();
+            AdminPrincipal principal = principal(null, null);
+            given(adminAccountRepository.findById(principal.adminId()))
+                    .willReturn(Optional.of(adminAccount));
             given(festivalRepository.save(any(Festival.class)))
-                    .willAnswer(invocation -> invocation.getArgument(0));
+                    .willAnswer(invocation -> {
+                        Festival festival = invocation.getArgument(0);
+                        ReflectionTestUtils.setField(festival, "id", 1L);
+                        return festival;
+                    });
 
             // when
-            Festival festival = festivalCommandService.create(command);
+            Festival festival = festivalCommandService.create(command, principal);
 
             // then
             assertThat(festival.getNameValue()).isEqualTo(command.name());
             assertThat(festival.getStartDate()).isEqualTo(command.startDate());
+            assertThat(adminAccount.getFestivalId()).isEqualTo(festival.getId());
+            assertThat(adminAccount.getRole()).isEqualTo(AdminRole.FESTIVAL_OWNER);
 
             ArgumentCaptor<Festival> captor =
                     ArgumentCaptor.forClass(Festival.class);
@@ -82,6 +101,8 @@ class FestivalCommandServiceTest {
                     festivalId,
                     AdminRole.FESTIVAL_OWNER
             );
+            given(adminAccountRepository.findById(principal.adminId()))
+                    .willReturn(Optional.of(festivalOwner(festivalId)));
             given(festivalRepository.findById(festivalId))
                     .willReturn(Optional.of(festival));
 
@@ -105,6 +126,8 @@ class FestivalCommandServiceTest {
             Long festivalId = 1L;
             UpdateFestivalCommand command = updateCommand();
             AdminPrincipal principal = principal(festivalId, AdminRole.SUB_ADMIN);
+            given(adminAccountRepository.findById(principal.adminId()))
+                    .willReturn(Optional.of(subAdmin(festivalId)));
 
             // when & then
             assertThatThrownBy(() -> festivalCommandService.update(
@@ -123,6 +146,8 @@ class FestivalCommandServiceTest {
             Long festivalId = 1L;
             UpdateFestivalCommand command = updateCommand();
             AdminPrincipal principal = principal(2L, AdminRole.FESTIVAL_OWNER);
+            given(adminAccountRepository.findById(principal.adminId()))
+                    .willReturn(Optional.of(festivalOwner(2L)));
 
             // when & then
             assertThatThrownBy(() -> festivalCommandService.update(
@@ -144,6 +169,8 @@ class FestivalCommandServiceTest {
                     festivalId,
                     AdminRole.FESTIVAL_OWNER
             );
+            given(adminAccountRepository.findById(principal.adminId()))
+                    .willReturn(Optional.of(festivalOwner(festivalId)));
             given(festivalRepository.findById(festivalId))
                     .willReturn(Optional.empty());
 
@@ -207,6 +234,32 @@ class FestivalCommandServiceTest {
                         LocalTime.of(10, 0),
                         LocalTime.of(21, 0)
                 )
+        );
+    }
+
+    private AdminAccount unassignedAdmin() {
+        return AdminAccount.createAdmin(
+                AdminEmail.of("owner@mapo.go.kr"),
+                AdminName.of("홍길동"),
+                AdminOrganization.of("마포구청 소속"),
+                "encoded-password"
+        );
+    }
+
+    private AdminAccount festivalOwner(Long festivalId) {
+        AdminAccount adminAccount = unassignedAdmin();
+        adminAccount.assignFestivalOwner(festivalId);
+        return adminAccount;
+    }
+
+    private AdminAccount subAdmin(Long festivalId) {
+        return AdminAccount.createSubAdmin(
+                AdminEmail.of("sub@mapo.go.kr"),
+                AdminName.of("김서브"),
+                AdminOrganization.of("마포구청 소속"),
+                festivalId,
+                "encoded-password",
+                1L
         );
     }
 }

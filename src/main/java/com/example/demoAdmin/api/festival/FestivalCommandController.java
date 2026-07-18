@@ -38,15 +38,20 @@ public class FestivalCommandController {
      * 임시 기준의 축제 기본 정보를 저장한다.
      */
     @Operation(summary = "축제 기본 정보 생성")
+    @SecurityRequirement(name = "bearerAuth")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<CreateFestivalResponse> create(
-            @Valid @RequestBody CreateFestivalRequest request
+            @Valid @RequestBody CreateFestivalRequest request,
+            @AuthenticationPrincipal AdminPrincipal principal
     ) {
         return ApiResponse.success(
                 SuccessCode.FESTIVAL_CREATE_SUCCESS,
                 CreateFestivalResponse.from(
-                        festivalCommandService.create(request.toCommand())
+                        festivalCommandService.create(
+                                request.toCommand(),
+                                principal
+                        )
                 )
         );
     }

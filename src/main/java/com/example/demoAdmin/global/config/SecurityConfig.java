@@ -43,8 +43,6 @@ public class SecurityConfig {
                                 HttpMethod.POST,
                                 "/api/admin/auth/email-verification/confirm"
                         ).permitAll()
-                        // TODO(festival): 축제 생성 권한은 실제 DB/API 정책 확인 후 관리자 권한 기반으로 재조정한다.
-                        .requestMatchers(HttpMethod.POST, "/api/festivals").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest().authenticated()

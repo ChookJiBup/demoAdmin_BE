@@ -9,7 +9,6 @@ import static org.mockito.Mockito.doThrow;
 
 import com.example.demoadmin.admin.command.domain.AdminAccount;
 import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
-import com.example.demoadmin.admin.command.domain.AdminRole;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.api.auth.dto.AdminSignupRequest;
 import com.example.demoadmin.global.response.CustomException;
@@ -49,10 +48,6 @@ class AdminSignupServiceTest {
             AdminSignupRequest request = signupRequest("admin@mapo.go.kr");
             given(adminAccountRepository.existsByEmail(AdminEmail.of(request.email())))
                     .willReturn(false);
-            given(adminAccountRepository.existsByFestivalIdAndRole(
-                    request.festivalId(),
-                    AdminRole.FESTIVAL_OWNER
-            )).willReturn(false);
             given(passwordEncoder.encode(request.password()))
                     .willReturn("encoded-password");
             given(adminAccountRepository.save(any(AdminAccount.class)))
@@ -63,6 +58,8 @@ class AdminSignupServiceTest {
 
             // then
             assertThat(response.email()).isEqualTo("admin@mapo.go.kr");
+            assertThat(response.festivalId()).isNull();
+            assertThat(response.role()).isNull();
             then(emailVerificationService)
                     .should()
                     .ensureVerified(AdminEmail.of(request.email()));
@@ -93,7 +90,6 @@ class AdminSignupServiceTest {
                 email,
                 "홍길동",
                 "마포구청 소속",
-                1L,
                 "Password!123",
                 "Password!123"
         );
