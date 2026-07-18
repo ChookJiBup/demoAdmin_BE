@@ -1,13 +1,18 @@
-package com.example.demoAdmin;
+package com.example.demoadmin;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class DemoAdminApplicationTests {
+public class DemoAdminApplicationTests {
 
 	@Test
-	void contextLoads() {
+	public void success_ContextLoads() {
+		// given
+
+		// when
+
+		// then
 	}
 
 }
