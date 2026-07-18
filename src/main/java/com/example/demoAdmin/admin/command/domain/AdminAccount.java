@@ -3,6 +3,7 @@ package com.example.demoadmin.admin.command.domain;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
+import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.common.domain.BaseTimeEntity;
 import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
@@ -64,8 +65,12 @@ public class AdminAccount extends BaseTimeEntity {
     @Column(name = "festival_id")
     private Long festivalId;
 
-    @Column(name = "password_hash", nullable = false, length = 255)
-    private String passwordHash;
+    @Embedded
+    @AttributeOverride(
+            name = "value",
+            column = @Column(name = "password_hash", nullable = false, length = 255)
+    )
+    private AdminPasswordHash passwordHash;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 50)
@@ -83,7 +88,7 @@ public class AdminAccount extends BaseTimeEntity {
             AdminName name,
             AdminOrganization organization,
             Long festivalId,
-            String passwordHash,
+            AdminPasswordHash passwordHash,
             AdminRole role,
             Long invitedByAdminId
     ) {
@@ -104,7 +109,7 @@ public class AdminAccount extends BaseTimeEntity {
             AdminEmail email,
             AdminName name,
             AdminOrganization organization,
-            String passwordHash
+            AdminPasswordHash passwordHash
     ) {
         return new AdminAccount(
                 email,
@@ -125,7 +130,7 @@ public class AdminAccount extends BaseTimeEntity {
             AdminName name,
             AdminOrganization organization,
             Long festivalId,
-            String passwordHash
+            AdminPasswordHash passwordHash
     ) {
         return new AdminAccount(
                 email,
@@ -146,7 +151,7 @@ public class AdminAccount extends BaseTimeEntity {
             AdminName name,
             AdminOrganization organization,
             Long festivalId,
-            String passwordHash,
+            AdminPasswordHash passwordHash,
             Long invitedByAdminId
     ) {
         return new AdminAccount(
@@ -217,5 +222,9 @@ public class AdminAccount extends BaseTimeEntity {
 
     public String getOrganizationValue() {
         return organization.getValue();
+    }
+
+    public String getPasswordHashValue() {
+        return passwordHash.getValue();
     }
 }

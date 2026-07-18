@@ -33,7 +33,7 @@ public class AdminLoginService {
         AdminAccount adminAccount = adminAccountRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUTH_INVALID_CREDENTIALS));
 
-        if (!passwordEncoder.matches(request.password(), adminAccount.getPasswordHash())) {
+        if (!passwordEncoder.matches(request.password(), adminAccount.getPasswordHashValue())) {
             throw new CustomException(ErrorCode.AUTH_INVALID_CREDENTIALS);
         }
 

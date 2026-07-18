@@ -7,6 +7,7 @@ import com.example.demoadmin.admin.command.domain.AdminRole;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
+import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -161,7 +162,7 @@ class AdminAccountJpaRepositoryTest {
                 AdminName.of("홍길동"),
                 AdminOrganization.of("서울시 소속"),
                 festivalId,
-                "{noop}password"
+                AdminPasswordHash.of("{noop}password")
         );
     }
 }

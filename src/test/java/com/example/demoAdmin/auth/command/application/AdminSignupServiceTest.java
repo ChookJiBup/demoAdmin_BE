@@ -74,6 +74,10 @@ class AdminSignupServiceTest {
         void fail_Signup_EmailNotVerified_CustomException() {
             // given
             AdminSignupRequest request = signupRequest("admin@mapo.go.kr");
+            given(adminAccountRepository.existsByEmail(AdminEmail.of(request.email())))
+                    .willReturn(false);
+            given(passwordEncoder.encode(request.password()))
+                    .willReturn("encoded-password");
             doThrow(new CustomException(ErrorCode.AUTH_EMAIL_NOT_VERIFIED))
                     .when(emailVerificationService)
                     .ensureVerified(AdminEmail.of(request.email()));

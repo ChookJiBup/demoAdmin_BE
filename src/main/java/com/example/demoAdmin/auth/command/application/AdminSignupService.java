@@ -5,6 +5,7 @@ import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
+import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.api.auth.dto.AdminSignupRequest;
 import com.example.demoadmin.api.auth.dto.AdminSignupResponse;
 import com.example.demoadmin.global.response.CustomException;
@@ -46,7 +47,7 @@ public class AdminSignupService {
                 email,
                 name,
                 organization,
-                passwordEncoder.encode(request.password())
+                AdminPasswordHash.of(passwordEncoder.encode(request.password()))
         );
 
         emailVerificationService.ensureVerified(email);

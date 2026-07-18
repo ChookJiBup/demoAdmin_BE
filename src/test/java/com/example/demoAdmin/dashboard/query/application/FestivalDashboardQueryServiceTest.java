@@ -10,6 +10,7 @@ import com.example.demoadmin.admin.command.domain.AdminRole;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
+import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.auth.support.AdminPrincipal;
 import com.example.demoadmin.dashboard.query.application.dto.FestivalDashboardView;
 import com.example.demoadmin.global.response.CustomException;
@@ -111,7 +112,7 @@ class FestivalDashboardQueryServiceTest {
                 AdminEmail.of("owner@mapo.go.kr"),
                 AdminName.of("홍길동"),
                 AdminOrganization.of("마포구청 소속"),
-                "encoded-password"
+                AdminPasswordHash.of("encoded-password")
         );
     }
 
