@@ -28,14 +28,14 @@ class AdminAccountJpaRepositoryTest {
         void success_FindByEmail_IgnoreCase() {
             // given
             AdminAccount adminAccount = festivalOwner(
-                    "owner@example.com",
+                    "owner@mapo.go.kr",
                     1L
             );
             adminAccountJpaRepository.save(adminAccount);
 
             // when
             var found = adminAccountJpaRepository.findByEmail(
-                    AdminEmail.of("OWNER@example.com")
+                    AdminEmail.of("OWNER@MAPO.GO.KR")
             );
 
             // then
@@ -50,7 +50,7 @@ class AdminAccountJpaRepositoryTest {
         @DisplayName("저장되지 않은 이메일이면 조회 결과가 없다")
         void success_FindByEmail_NotFoundBoundary() {
             // given
-            AdminEmail email = AdminEmail.of("missing@example.com");
+            AdminEmail email = AdminEmail.of("missing@mapo.go.kr");
 
             // when
             var found = adminAccountJpaRepository.findByEmail(email);
@@ -69,13 +69,13 @@ class AdminAccountJpaRepositoryTest {
         void success_ExistsByEmail_ExistingEmail() {
             // given
             adminAccountJpaRepository.save(festivalOwner(
-                    "owner@example.com",
+                    "owner@mapo.go.kr",
                     1L
             ));
 
             // when
             boolean exists = adminAccountJpaRepository.existsByEmail(
-                    AdminEmail.of("owner@example.com")
+                    AdminEmail.of("owner@mapo.go.kr")
             );
 
             // then
@@ -86,7 +86,7 @@ class AdminAccountJpaRepositoryTest {
         @DisplayName("저장되지 않은 이메일이면 false를 반환한다")
         void success_ExistsByEmail_NotExistingEmail() {
             // given
-            AdminEmail email = AdminEmail.of("other@example.com");
+            AdminEmail email = AdminEmail.of("other@mapo.go.kr");
 
             // when
             boolean exists = adminAccountJpaRepository.existsByEmail(email);
@@ -105,7 +105,7 @@ class AdminAccountJpaRepositoryTest {
         void success_ExistsByFestivalIdAndRole_ExistingOwner() {
             // given
             adminAccountJpaRepository.save(festivalOwner(
-                    "owner@example.com",
+                    "owner@mapo.go.kr",
                     1L
             ));
 
@@ -140,7 +140,7 @@ class AdminAccountJpaRepositoryTest {
         void success_ExistsByFestivalIdAndRole_DifferentFestival() {
             // given
             adminAccountJpaRepository.save(festivalOwner(
-                    "owner@example.com",
+                    "owner@mapo.go.kr",
                     1L
             ));
 

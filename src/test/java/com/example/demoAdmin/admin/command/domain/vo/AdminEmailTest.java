@@ -36,26 +36,52 @@ class AdminEmailTest {
         @DisplayName("관리자 이메일은 앞뒤 공백을 제거하고 소문자로 변환한다")
         void success_Of_Normalized() {
             // given
-            String value = " Admin@Example.COM ";
+            String value = " Admin@MAPO.GO.KR ";
 
             // when
             AdminEmail email = AdminEmail.of(value);
 
             // then
-            assertThat(email.getValue()).isEqualTo("admin@example.com");
+            assertThat(email.getValue()).isEqualTo("admin@mapo.go.kr");
         }
 
         @Test
-        @DisplayName("관리자 이메일은 최소 형식 경계값이면 생성한다")
-        void success_Of_MinimumFormatBoundary() {
+        @DisplayName("공직자 통합메일 도메인이면 생성한다")
+        void success_Of_KoreaDomain() {
             // given
-            String value = "a@b.co";
+            String value = "admin@korea.kr";
 
             // when
             AdminEmail email = AdminEmail.of(value);
 
             // then
-            assertThat(email.getValue()).isEqualTo("a@b.co");
+            assertThat(email.getValue()).isEqualTo("admin@korea.kr");
+        }
+
+        @Test
+        @DisplayName("정부 도메인 최소 경계값이면 생성한다")
+        void success_Of_GoKrBoundary() {
+            // given
+            String value = "a@go.kr";
+
+            // when
+            AdminEmail email = AdminEmail.of(value);
+
+            // then
+            assertThat(email.getValue()).isEqualTo("a@go.kr");
+        }
+
+        @Test
+        @DisplayName("로컬 테스트용 네이버 도메인이면 임시로 생성한다")
+        void success_Of_TemporaryNaverDomain() {
+            // given
+            String value = "dlgkrwns213@naver.com";
+
+            // when
+            AdminEmail email = AdminEmail.of(value);
+
+            // then
+            assertThat(email.getValue()).isEqualTo("dlgkrwns213@naver.com");
         }
 
         @Test
@@ -92,6 +118,18 @@ class AdminEmailTest {
             assertThatThrownBy(() -> AdminEmail.of(value))
                     .isInstanceOf(CustomException.class)
                     .hasMessage(ErrorCode.INVALID_REQUEST.getMessage());
+        }
+
+        @Test
+        @DisplayName("정부 공식 이메일 도메인이 아니면 생성할 수 없다")
+        void fail_Of_NotGovernmentDomain_CustomException() {
+            // given
+            String value = "admin@example.com";
+
+            // when & then
+            assertThatThrownBy(() -> AdminEmail.of(value))
+                    .isInstanceOf(CustomException.class)
+                    .hasMessage(ErrorCode.AUTH_EMAIL_DOMAIN_NOT_ALLOWED.getMessage());
         }
     }
 }

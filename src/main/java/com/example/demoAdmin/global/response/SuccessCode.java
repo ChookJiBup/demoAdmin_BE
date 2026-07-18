@@ -6,7 +6,9 @@ package com.example.demoadmin.global.response;
 public enum SuccessCode {
     OK(20000, "요청이 성공적으로 처리되었습니다."),
     ADMIN_SIGNUP_SUCCESS(21000, "관리자 회원가입이 완료되었습니다."),
-    ADMIN_LOGIN_SUCCESS(21001, "관리자 로그인에 성공했습니다.");
+    ADMIN_LOGIN_SUCCESS(21001, "관리자 로그인에 성공했습니다."),
+    ADMIN_EMAIL_VERIFICATION_REQUEST_SUCCESS(21002, "관리자 이메일 인증 코드가 발송되었습니다."),
+    ADMIN_EMAIL_VERIFICATION_CONFIRM_SUCCESS(21003, "관리자 이메일 인증이 완료되었습니다.");
 
     private final int code;
     private final String message;

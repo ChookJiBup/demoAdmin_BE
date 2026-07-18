@@ -8,6 +8,11 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     BAD_REQUEST(40000, HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
     INVALID_REQUEST(40001, HttpStatus.BAD_REQUEST, "요청 값이 올바르지 않습니다."),
+    AUTH_EMAIL_DOMAIN_NOT_ALLOWED(40002, HttpStatus.BAD_REQUEST, "정부 공식 이메일만 사용할 수 있습니다."),
+    AUTH_EMAIL_VERIFICATION_NOT_FOUND(40003, HttpStatus.BAD_REQUEST, "이메일 인증 요청을 찾을 수 없습니다."),
+    AUTH_EMAIL_VERIFICATION_INVALID(40004, HttpStatus.BAD_REQUEST, "이메일 인증 코드가 올바르지 않습니다."),
+    AUTH_EMAIL_VERIFICATION_EXPIRED(40005, HttpStatus.BAD_REQUEST, "이메일 인증 코드가 만료되었습니다."),
+    AUTH_EMAIL_NOT_VERIFIED(40006, HttpStatus.BAD_REQUEST, "이메일 인증이 완료되지 않았습니다."),
     AUTH_PASSWORD_CONFIRM_MISMATCH(40101, HttpStatus.BAD_REQUEST, "비밀번호 확인이 일치하지 않습니다."),
 
     UNAUTHORIZED(40100, HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),

@@ -1,9 +1,12 @@
 package com.example.demoadmin.api.auth;
 
+import com.example.demoadmin.api.auth.dto.AdminEmailVerificationConfirmRequest;
+import com.example.demoadmin.api.auth.dto.AdminEmailVerificationRequest;
 import com.example.demoadmin.api.auth.dto.AdminLoginRequest;
 import com.example.demoadmin.api.auth.dto.AdminLoginResponse;
 import com.example.demoadmin.api.auth.dto.AdminSignupRequest;
 import com.example.demoadmin.api.auth.dto.AdminSignupResponse;
+import com.example.demoadmin.auth.command.application.AdminEmailVerificationService;
 import com.example.demoadmin.auth.command.application.AdminLoginService;
 import com.example.demoadmin.auth.command.application.AdminSignupService;
 import com.example.demoadmin.global.response.ApiResponse;
@@ -30,6 +33,35 @@ public class AdminAuthController {
 
     private final AdminSignupService adminSignupService;
     private final AdminLoginService adminLoginService;
+    private final AdminEmailVerificationService emailVerificationService;
+
+    /**
+     * 정부 공식 이메일로 회원가입 인증 코드를 발송한다.
+     */
+    @Operation(summary = "관리자 이메일 인증 코드 요청")
+    @PostMapping("/auth/email-verification/request")
+    public ApiResponse<Void> requestEmailVerification(
+            @Valid @RequestBody AdminEmailVerificationRequest request
+    ) {
+        emailVerificationService.request(request);
+        return ApiResponse.success(
+                SuccessCode.ADMIN_EMAIL_VERIFICATION_REQUEST_SUCCESS
+        );
+    }
+
+    /**
+     * 발송된 이메일 인증 코드를 확인한다.
+     */
+    @Operation(summary = "관리자 이메일 인증 코드 확인")
+    @PostMapping("/auth/email-verification/confirm")
+    public ApiResponse<Void> confirmEmailVerification(
+            @Valid @RequestBody AdminEmailVerificationConfirmRequest request
+    ) {
+        emailVerificationService.confirm(request);
+        return ApiResponse.success(
+                SuccessCode.ADMIN_EMAIL_VERIFICATION_CONFIRM_SUCCESS
+        );
+    }
 
     /**
      * 축제별 1관리자 계정을 생성한다.

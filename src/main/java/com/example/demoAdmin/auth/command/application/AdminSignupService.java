@@ -24,6 +24,7 @@ public class AdminSignupService {
 
     private final AdminAccountRepository adminAccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AdminEmailVerificationService emailVerificationService;
 
     /**
      * 축제에 아직 1관리자가 없을 때 새 1관리자 계정을 생성한다.
@@ -57,7 +58,11 @@ public class AdminSignupService {
                 passwordEncoder.encode(request.password())
         );
 
-        return AdminSignupResponse.from(adminAccountRepository.save(adminAccount));
+        emailVerificationService.ensureVerified(email);
+        AdminAccount savedAdminAccount = adminAccountRepository.save(adminAccount);
+        emailVerificationService.consumeVerified(email);
+
+        return AdminSignupResponse.from(savedAdminAccount);
     }
 }
 
