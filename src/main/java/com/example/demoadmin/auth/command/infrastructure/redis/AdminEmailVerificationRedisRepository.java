@@ -6,6 +6,7 @@ import com.example.demoadmin.auth.command.domain.AdminEmailVerificationRepositor
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
  * Redis TTL을 사용해 관리자 이메일 인증 코드를 저장하는 저장소 구현체이다.
  */
 @Repository
+@RequiredArgsConstructor
 public class AdminEmailVerificationRedisRepository
         implements AdminEmailVerificationRepository {
 
@@ -20,10 +22,6 @@ public class AdminEmailVerificationRedisRepository
     private static final String DELIMITER = "|";
 
     private final StringRedisTemplate redisTemplate;
-
-    public AdminEmailVerificationRedisRepository(StringRedisTemplate redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
 
     @Override
     public void save(AdminEmailVerification verification) {
