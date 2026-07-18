@@ -5,7 +5,7 @@ import com.example.demoadmin.api.festival.dto.CreateFestivalResponse;
 import com.example.demoadmin.api.festival.dto.UpdateFestivalRequest;
 import com.example.demoadmin.api.festival.dto.UpdateFestivalResponse;
 import com.example.demoadmin.auth.support.AdminPrincipal;
-import com.example.demoadmin.festival.command.application.FestivalCommandService;
+import com.example.demoadmin.festival.command.application.FestivalApplicationService;
 import com.example.demoadmin.global.response.ApiResponse;
 import com.example.demoadmin.global.response.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class FestivalCommandController {
 
-    private final FestivalCommandService festivalCommandService;
+    private final FestivalApplicationService festivalApplicationService;
 
     /**
      * 임시 기준의 축제 기본 정보를 저장한다.
@@ -48,7 +48,7 @@ public class FestivalCommandController {
         return ApiResponse.success(
                 SuccessCode.FESTIVAL_CREATE_SUCCESS,
                 CreateFestivalResponse.from(
-                        festivalCommandService.create(
+                        festivalApplicationService.create(
                                 request.toCommand(),
                                 principal
                         )
@@ -70,7 +70,7 @@ public class FestivalCommandController {
         return ApiResponse.success(
                 SuccessCode.FESTIVAL_UPDATE_SUCCESS,
                 UpdateFestivalResponse.from(
-                        festivalCommandService.update(
+                        festivalApplicationService.update(
                                 festivalId,
                                 request.toCommand(),
                                 principal

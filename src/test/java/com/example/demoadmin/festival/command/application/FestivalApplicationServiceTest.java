@@ -39,10 +39,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-class FestivalCommandServiceTest {
+class FestivalApplicationServiceTest {
 
     @InjectMocks
-    private FestivalCommandService festivalCommandService;
+    private FestivalApplicationService festivalApplicationService;
 
     @Mock
     private FestivalRepository festivalRepository;
@@ -71,7 +71,7 @@ class FestivalCommandServiceTest {
                     });
 
             // when
-            Festival festival = festivalCommandService.create(command, principal);
+            Festival festival = festivalApplicationService.create(command, principal);
 
             // then
             assertThat(festival.getNameValue()).isEqualTo(command.name());
@@ -108,7 +108,7 @@ class FestivalCommandServiceTest {
                     .willReturn(Optional.of(festival));
 
             // when
-            Festival updated = festivalCommandService.update(
+            Festival updated = festivalApplicationService.update(
                     festivalId,
                     command,
                     principal
@@ -131,7 +131,7 @@ class FestivalCommandServiceTest {
                     .willReturn(Optional.of(subAdmin(festivalId)));
 
             // when & then
-            assertThatThrownBy(() -> festivalCommandService.update(
+            assertThatThrownBy(() -> festivalApplicationService.update(
                     festivalId,
                     command,
                     principal
@@ -151,7 +151,7 @@ class FestivalCommandServiceTest {
                     .willReturn(Optional.of(festivalOwner(2L)));
 
             // when & then
-            assertThatThrownBy(() -> festivalCommandService.update(
+            assertThatThrownBy(() -> festivalApplicationService.update(
                     festivalId,
                     command,
                     principal
@@ -176,7 +176,7 @@ class FestivalCommandServiceTest {
                     .willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> festivalCommandService.update(
+            assertThatThrownBy(() -> festivalApplicationService.update(
                     festivalId,
                     command,
                     principal

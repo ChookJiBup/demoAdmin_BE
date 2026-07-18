@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class FestivalCommandService {
+public class FestivalApplicationService {
 
     private final FestivalRepository festivalRepository;
     private final AdminAccountRepository adminAccountRepository;
