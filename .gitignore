@@ -39,3 +39,5 @@ out/
 ### Local References ###
 reference/
 
+### Local Secrets ###
+src/main/resources/application-secret.yml
