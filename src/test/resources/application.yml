@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:demo_admin_test;MODE=PostgreSQL;DATABASE_TO_UPPER=false
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2s
+
+app:
+  jwt:
+    secret: test-jwt-secret-key-for-demo-admin-local-tests
+    access-token-expiration-seconds: 1800

@@ -4,10 +4,10 @@ spring:
   config:
     import: optional:application-secret.yml
   datasource:
-    url: jdbc:h2:mem:demo_admin;MODE=MySQL;DATABASE_TO_UPPER=false
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/demo_admin}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:demo_admin}
+    password: ${DB_PASSWORD:demo_admin}
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,7 +17,12 @@ spring:
         format_sql: true
   h2:
     console:
-      enabled: true
+      enabled: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
 
 app:
   jwt:
