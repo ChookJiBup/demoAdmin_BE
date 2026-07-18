@@ -389,4 +389,44 @@ public final class ResourceFixture {
 
 ---
 
+## 12. 테스트 작성 범위
+
+Controller를 제외한 모든 운영 클래스는 단위 테스트를 작성한다.
+
+단위 테스트 필수 대상:
+
+- Entity와 Aggregate
+- Value Object
+- Domain Service
+- Application Service
+- Repository wrapper Service
+- 외부 연동 Adapter
+- 설정값 파싱이나 토큰 처리 같은 support class
+
+통합 테스트 필수 대상:
+
+- `[domain명]Repository`
+- `[domain명]Service` 형태의 Repository wrapper Service를 제외한 모든 Service
+- `[domain명][행위]Service`
+- `[domain명]ApplicationService`
+
+Repository wrapper Service는 Repository 호출을 얇게 감싸는 용도이므로
+통합 테스트 필수 대상에서 제외한다.
+
+단, Controller는 기본 필수 범위에서 제외한다.
+Controller 테스트가 필요한 경우는 다음과 같다.
+
+- API 입력 검증 자체가 복잡한 경우
+- Security filter, 인증 principal, HTTP status 검증이 중요한 경우
+- 프런트엔드와 API 계약을 회귀 테스트로 고정해야 하는 경우
+
+테스트 이름과 구조는 기존 규칙을 유지한다.
+
+- 성공: `success_[테스트할 메서드 명]_[특수 상황]`
+- 실패: `fail_[테스트할 메서드 명]_[던질 에러]`
+- 한 메서드 테스트가 많아지면 `@Nested`
+- 경계값 테스트는 필수
+
+---
+
 

@@ -5,7 +5,9 @@
 | 역할 | 접미사 |
 | --- | --- |
 | HTTP 진입점 | `Controller` |
-| 쓰기 유스케이스 | `CommandService` 또는 `Service` |
+| Repository wrapper Service | `[domain명]Service` |
+| 특정 행위 유스케이스 | `[domain명][행위]Service` |
+| 광범위한 유스케이스 | `[domain명]ApplicationService` |
 | 조회 유스케이스 | `QueryService` |
 | 복합 흐름 | `Facade` |
 | 저장 계약 | `Repository` |
@@ -22,6 +24,11 @@
 | 테스트 데이터 | `Fixture` |
 
 메서드는 의미 있는 동사로 작성한다.
+
+`[domain명]Service`는 `[domain명]Repository`를 감싸는 wrapper Service class에만 사용한다.
+실제 흐름을 담당하는 경우에는 `FestivalCreateService`, `AdminSignupService`처럼
+도메인명과 행위를 함께 드러낸다.
+특정 행위 하나로 좁히기 어려운 광범위한 기능은 `FestivalApplicationService`처럼 작성한다.
 
 좋은 예:
 
