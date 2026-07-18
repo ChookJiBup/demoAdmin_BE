@@ -1,0 +1,53 @@
+package com.example.demoadmin.auth.command.application;
+
+import com.example.demoadmin.admin.command.domain.AdminAccount;
+import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
+import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
+import com.example.demoadmin.auth.command.infrastructure.JwtTokenProvider;
+import com.example.demoadmin.api.auth.dto.AdminLoginRequest;
+import com.example.demoadmin.api.auth.dto.AdminLoginResponse;
+import com.example.demoadmin.global.response.CustomException;
+import com.example.demoadmin.global.response.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * 관리자 이메일/비밀번호 로그인과 JWT 발급을 처리한다.
+ */
+@Service
+@RequiredArgsConstructor
+public class AdminLoginService {
+
+    private final AdminAccountRepository adminAccountRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+
+    /**
+     * 활성 관리자 인증에 성공하면 Access Token과 관리자 권한 정보를 반환한다.
+     */
+    @Transactional(readOnly = true)
+    public AdminLoginResponse login(AdminLoginRequest request) {
+        AdminEmail email = AdminEmail.of(request.email());
+        AdminAccount adminAccount = adminAccountRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_INVALID_CREDENTIALS));
+
+        if (!passwordEncoder.matches(request.password(), adminAccount.getPasswordHash())) {
+            throw new CustomException(ErrorCode.AUTH_INVALID_CREDENTIALS);
+        }
+
+        if (!adminAccount.isActive()) {
+            throw new CustomException(ErrorCode.AUTH_ADMIN_INACTIVE);
+        }
+
+        String accessToken = jwtTokenProvider.createAccessToken(adminAccount);
+
+        return AdminLoginResponse.of(
+                accessToken,
+                jwtTokenProvider.getAccessTokenExpirationSeconds(),
+                adminAccount
+        );
+    }
+}
+
