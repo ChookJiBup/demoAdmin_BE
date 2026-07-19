@@ -43,6 +43,10 @@ public class SecurityConfig {
                                 HttpMethod.POST,
                                 "/api/admin/auth/email-verification/confirm"
                         ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/field-staff/auth/login"
+                        ).permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest().authenticated()

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 public class JwtTokenProvider {
 
     private static final String HMAC_ALGORITHM = "HmacSHA256";
+    private static final String ADMIN_SUBJECT_TYPE = "ADMIN";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JwtProperties jwtProperties;
@@ -41,6 +42,7 @@ public class JwtTokenProvider {
         header.put("typ", "JWT");
 
         Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("subjectType", ADMIN_SUBJECT_TYPE);
         payload.put("sub", adminAccount.getId());
         payload.put("festivalId", adminAccount.getFestivalId());
         payload.put("email", adminAccount.getEmailValue());
@@ -73,6 +75,7 @@ public class JwtTokenProvider {
         }
 
         JsonNode payload = decodePayload(parts[1]);
+        validateAdminSubject(payload);
         long exp = payload.path("exp").asLong();
         if (Instant.now().getEpochSecond() > exp) {
             throw new CustomException(ErrorCode.AUTH_TOKEN_EXPIRED);
@@ -117,6 +120,13 @@ public class JwtTokenProvider {
 
     private AdminRole nullableRole(JsonNode node) {
         return node == null || node.isNull() ? null : AdminRole.valueOf(node.asText());
+    }
+
+    private void validateAdminSubject(JsonNode payload) {
+        JsonNode subjectType = payload.get("subjectType");
+        if (subjectType != null && !ADMIN_SUBJECT_TYPE.equals(subjectType.asText())) {
+            throw new CustomException(ErrorCode.AUTH_TOKEN_INVALID);
+        }
     }
 
     private String sign(String unsignedToken) {

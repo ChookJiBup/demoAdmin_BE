@@ -12,6 +12,7 @@ public enum AdminRole {
             true,
             true,
             true,
+            true,
             true
     ),
     SUB_ADMIN(
@@ -19,13 +20,15 @@ public enum AdminRole {
             false,
             true,
             true,
+            true,
             true
     );
 
-    // TODO(operator): 운영 코드 기반 행사 진행자 인증을 별도 operator 도메인으로 구현한다.
+    // TODO(operator): 현장 스태프 토큰으로 호출할 실제 운영 API 권한 모델을 확정한다.
 
     private final boolean canInviteSubAdmin;
     private final boolean canModifyFestivalInfo;
+    private final boolean canManageFieldStaff;
     private final boolean canManageQueueDesign;
     private final boolean canViewOperationReport;
     private final boolean canUpdateQueueTail;
@@ -33,12 +36,14 @@ public enum AdminRole {
     AdminRole(
             boolean canInviteSubAdmin,
             boolean canModifyFestivalInfo,
+            boolean canManageFieldStaff,
             boolean canManageQueueDesign,
             boolean canViewOperationReport,
             boolean canUpdateQueueTail
     ) {
         this.canInviteSubAdmin = canInviteSubAdmin;
         this.canModifyFestivalInfo = canModifyFestivalInfo;
+        this.canManageFieldStaff = canManageFieldStaff;
         this.canManageQueueDesign = canManageQueueDesign;
         this.canViewOperationReport = canViewOperationReport;
         this.canUpdateQueueTail = canUpdateQueueTail;
@@ -56,6 +61,13 @@ public enum AdminRole {
      */
     public boolean canModifyFestivalInfo() {
         return canModifyFestivalInfo;
+    }
+
+    /**
+     * 현장 스태프 계정 추가와 삭제 권한 여부를 반환한다.
+     */
+    public boolean canManageFieldStaff() {
+        return canManageFieldStaff;
     }
 
     /**

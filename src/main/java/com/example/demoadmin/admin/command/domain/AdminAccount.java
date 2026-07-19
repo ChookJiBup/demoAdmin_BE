@@ -199,6 +199,13 @@ public class AdminAccount extends BaseTimeEntity {
     }
 
     /**
+     * 현장 스태프 계정 추가와 삭제 권한을 가진 계정인지 확인한다.
+     */
+    public boolean canManageFieldStaff() {
+        return role != null && role.canManageFieldStaff();
+    }
+
+    /**
      * 현장 줄 끝 라인 갱신 권한을 가진 계정인지 확인한다.
      */
     public boolean canUpdateQueueTail() {
