@@ -2,6 +2,7 @@ package com.example.demoadmin.api.auth.dto;
 
 import com.example.demoadmin.admin.command.domain.AdminAccount;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 
 /**
  * 관리자 로그인 성공 시 발급된 토큰과 관리자 요약 정보를 반환한다.
@@ -27,14 +28,23 @@ public record AdminLoginResponse(
     public static AdminLoginResponse of(
             String accessToken,
             long expiresIn,
-            AdminAccount adminAccount
+            AdminAccount adminAccount,
+            UUID festivalId
     ) {
         return new AdminLoginResponse(
                 accessToken,
                 "Bearer",
                 expiresIn,
-                AdminSummaryResponse.from(adminAccount)
+                AdminSummaryResponse.from(adminAccount, festivalId)
         );
+    }
+
+    public static AdminLoginResponse of(
+            String accessToken,
+            long expiresIn,
+            AdminAccount adminAccount
+    ) {
+        return of(accessToken, expiresIn, adminAccount, null);
     }
 }
 

@@ -41,7 +41,33 @@ class AdminAccountRepositoryTest {
 
             // then
             assertThat(saved.getId()).isNotNull();
+            assertThat(saved.getPublicId()).isNotNull();
             assertThat(saved.getEmailValue()).isEqualTo("owner@mapo.go.kr");
+        }
+    }
+
+    @Nested
+    @DisplayName("findByPublicId")
+    class FindByPublicId {
+
+        @Test
+        @DisplayName("관리자 UUID로 관리자 계정을 조회한다")
+        void success_FindByPublicId() {
+            // given
+            AdminAccount saved = adminAccountRepository.save(festivalOwner(
+                    "owner@mapo.go.kr",
+                    1L
+            ));
+
+            // when
+            var found = adminAccountRepository.findByPublicId(saved.getPublicId());
+
+            // then
+            assertThat(found)
+                    .isPresent()
+                    .get()
+                    .extracting(AdminAccount::getEmailValue)
+                    .isEqualTo("owner@mapo.go.kr");
         }
     }
 

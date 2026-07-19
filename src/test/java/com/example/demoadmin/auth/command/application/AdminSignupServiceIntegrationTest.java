@@ -45,7 +45,7 @@ class AdminSignupServiceIntegrationTest {
             AdminAccount saved = adminAccountRepository
                     .findByEmail(AdminEmail.of(request.email()))
                     .orElseThrow();
-            assertThat(response.adminId()).isEqualTo(saved.getId());
+            assertThat(response.adminId()).isEqualTo(saved.getPublicId());
             assertThat(saved.getFestivalId()).isNull();
             assertThat(saved.getRole()).isNull();
         }

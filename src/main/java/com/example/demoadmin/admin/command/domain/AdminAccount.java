@@ -18,6 +18,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,16 +31,26 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         name = "admin_accounts",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_admin_accounts_email",
-                columnNames = "email"
-        )
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_admin_accounts_public_id",
+                        columnNames = "public_id"
+                ),
+                @UniqueConstraint(
+                        name = "uk_admin_accounts_email",
+                        columnNames = "email"
+                )
+        }
 )
 public class AdminAccount extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // TODO(admin): 운영 DB 반영 전 기존 admin_accounts 데이터의 public_id 백필 마이그레이션을 작성한다.
+    @Column(name = "public_id", nullable = false, updatable = false)
+    private UUID publicId;
 
     @Embedded
     @AttributeOverride(
@@ -92,6 +103,7 @@ public class AdminAccount extends BaseTimeEntity {
             AdminRole role,
             Long invitedByAdminId
     ) {
+        this.publicId = UUID.randomUUID();
         this.email = email;
         this.name = name;
         this.organization = organization;

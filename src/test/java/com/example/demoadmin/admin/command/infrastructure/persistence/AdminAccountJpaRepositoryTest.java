@@ -21,6 +21,31 @@ class AdminAccountJpaRepositoryTest {
     private AdminAccountJpaRepository adminAccountJpaRepository;
 
     @Nested
+    @DisplayName("findByPublicId")
+    class FindByPublicId {
+
+        @Test
+        @DisplayName("관리자 UUID로 DB에서 조회한다")
+        void success_FindByPublicId() {
+            // given
+            AdminAccount saved = adminAccountJpaRepository.save(festivalOwner(
+                    "owner@mapo.go.kr",
+                    1L
+            ));
+
+            // when
+            var found = adminAccountJpaRepository.findByPublicId(saved.getPublicId());
+
+            // then
+            assertThat(found)
+                    .isPresent()
+                    .get()
+                    .extracting(AdminAccount::getEmailValue)
+                    .isEqualTo("owner@mapo.go.kr");
+        }
+    }
+
+    @Nested
     @DisplayName("findByEmail")
     class FindByEmail {
 

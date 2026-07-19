@@ -5,6 +5,7 @@ import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.AdminRole;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,6 +23,11 @@ public class AdminAccountRepositoryImpl implements AdminAccountRepository {
     @Override
     public Optional<AdminAccount> findById(Long adminAccountId) {
         return jpaRepository.findById(adminAccountId);
+    }
+
+    @Override
+    public Optional<AdminAccount> findByPublicId(UUID publicId) {
+        return jpaRepository.findByPublicId(publicId);
     }
 
     @Override

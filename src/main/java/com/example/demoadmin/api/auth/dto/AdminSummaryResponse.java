@@ -3,17 +3,18 @@ package com.example.demoadmin.api.auth.dto;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
 import com.example.demoadmin.admin.command.domain.AdminRole;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 
 /**
  * 관리자 식별 정보와 역할별 권한 플래그를 제공하는 응답 DTO이다.
  */
 @Schema(description = "관리자 요약 정보")
 public record AdminSummaryResponse(
-        @Schema(description = "관리자 ID", example = "1")
-        Long adminId,
+        @Schema(description = "외부 노출용 관리자 ID", example = "33333333-3333-3333-3333-333333333333")
+        UUID adminId,
 
-        @Schema(description = "관리 대상 축제 ID. 축제 생성 전에는 null", example = "1")
-        Long festivalId,
+        @Schema(description = "외부 노출용 관리 대상 축제 ID. 축제 생성 전에는 null", example = "11111111-1111-1111-1111-111111111111")
+        UUID festivalId,
 
         @Schema(description = "로그인 이메일", example = "admin@mapo.go.kr")
         String email,
@@ -43,10 +44,13 @@ public record AdminSummaryResponse(
     /**
      * 관리자 계정의 현재 역할과 권한 정보를 요약 응답으로 변환한다.
      */
-    public static AdminSummaryResponse from(AdminAccount adminAccount) {
+    public static AdminSummaryResponse from(
+            AdminAccount adminAccount,
+            UUID festivalId
+    ) {
         return new AdminSummaryResponse(
-                adminAccount.getId(),
-                adminAccount.getFestivalId(),
+                adminAccount.getPublicId(),
+                festivalId,
                 adminAccount.getEmailValue(),
                 adminAccount.getNameValue(),
                 adminAccount.getOrganizationValue(),

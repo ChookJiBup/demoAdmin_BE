@@ -70,4 +70,21 @@ class AdminAccountTest {
                 AdminPasswordHash.of("encoded-password")
         );
     }
+
+    @Nested
+    @DisplayName("createAdmin")
+    class CreateAdmin {
+
+        @Test
+        @DisplayName("관리자 계정은 외부 노출용 UUID를 가진다")
+        void success_CreateAdmin() {
+            // given
+
+            // when
+            AdminAccount adminAccount = adminAccount();
+
+            // then
+            assertThat(adminAccount.getPublicId()).isNotNull();
+        }
+    }
 }
