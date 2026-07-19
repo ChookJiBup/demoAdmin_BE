@@ -34,7 +34,30 @@ class FestivalSeriesRepositoryTest {
 
             // then
             assertThat(saved.getId()).isNotNull();
+            assertThat(saved.getPublicId()).isNotNull();
             assertThat(saved.getNormalizedName()).isEqualTo("마포나루새우젓축제");
+        }
+    }
+
+    @Nested
+    @DisplayName("findByPublicId")
+    class FindByPublicId {
+
+        @Test
+        @DisplayName("축제 묶음 UUID로 조회한다")
+        void success_FindByPublicId() {
+            // given
+            FestivalSeries saved = festivalSeriesRepository.save(festivalSeries());
+
+            // when
+            var found = festivalSeriesRepository.findByPublicId(saved.getPublicId());
+
+            // then
+            assertThat(found)
+                    .isPresent()
+                    .get()
+                    .extracting(FestivalSeries::getNameValue)
+                    .isEqualTo("마포나루 새우젓축제");
         }
     }
 

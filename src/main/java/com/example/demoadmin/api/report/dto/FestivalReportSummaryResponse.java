@@ -3,11 +3,12 @@ package com.example.demoadmin.api.report.dto;
 import com.example.demoadmin.report.query.application.dto.FestivalReportSummaryView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Schema(description = "축제 결과 보고서 요약 응답")
 public record FestivalReportSummaryResponse(
-        @Schema(description = "축제 ID", example = "1")
-        Long festivalId,
+        @Schema(description = "외부 노출용 축제 ID", example = "11111111-1111-1111-1111-111111111111")
+        UUID festivalId,
         @Schema(description = "총 방문자 수", example = "0")
         long totalVisitorCount,
         @Schema(description = "최대 동시 방문자 수", example = "0")

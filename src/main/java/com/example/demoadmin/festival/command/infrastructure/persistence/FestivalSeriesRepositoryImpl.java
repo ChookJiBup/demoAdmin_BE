@@ -3,6 +3,7 @@ package com.example.demoadmin.festival.command.infrastructure.persistence;
 import com.example.demoadmin.festival.command.domain.FestivalSeries;
 import com.example.demoadmin.festival.command.domain.FestivalSeriesRepository;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -20,6 +21,11 @@ public class FestivalSeriesRepositoryImpl implements FestivalSeriesRepository {
     @Override
     public Optional<FestivalSeries> findById(Long seriesId) {
         return jpaRepository.findById(seriesId);
+    }
+
+    @Override
+    public Optional<FestivalSeries> findByPublicId(UUID publicId) {
+        return jpaRepository.findByPublicId(publicId);
     }
 
     @Override

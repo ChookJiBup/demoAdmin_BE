@@ -4,13 +4,14 @@ import com.example.demoadmin.festival.command.domain.Festival;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Schema(description = "축제 기본 정보 생성 응답")
 public record CreateFestivalResponse(
-        @Schema(description = "축제 ID", example = "1")
-        Long festivalId,
-        @Schema(description = "같은 축제를 연도별로 묶는 축제 묶음 ID", example = "10")
-        Long seriesId,
+        @Schema(description = "외부 노출용 축제 ID", example = "11111111-1111-1111-1111-111111111111")
+        UUID festivalId,
+        @Schema(description = "같은 축제를 연도별로 묶는 축제 묶음 UUID", example = "22222222-2222-2222-2222-222222222222")
+        UUID seriesId,
         @Schema(description = "개최 연도", example = "2026")
         int year,
         @Schema(description = "축제명", example = "마포나루 새우젓축제")
@@ -32,8 +33,8 @@ public record CreateFestivalResponse(
      */
     public static CreateFestivalResponse from(Festival festival) {
         return new CreateFestivalResponse(
-                festival.getId(),
-                festival.getSeriesId(),
+                festival.getPublicId(),
+                festival.getSeriesPublicId(),
                 festival.getYear(),
                 festival.getNameValue(),
                 festival.getStartDate(),

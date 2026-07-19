@@ -12,6 +12,7 @@ import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ class FestivalTest {
             Festival festival = festival();
 
             // then
+            assertThat(festival.getPublicId()).isNotNull();
             assertThat(festival.getSeriesId()).isEqualTo(seriesId);
             assertThat(festival.getYear()).isEqualTo(2026);
         }
@@ -45,6 +47,7 @@ class FestivalTest {
             // when & then
             assertThatThrownBy(() -> Festival.create(
                             seriesId,
+                            UUID.randomUUID(),
                             FestivalName.of("마포나루 새우젓축제"),
                             FestivalDescription.of("마포구 대표 지역 축제"),
                             FestivalAddress.of("서울특별시 마포구 월드컵로 243"),
@@ -122,6 +125,7 @@ class FestivalTest {
     private Festival festival() {
         return Festival.create(
                 1L,
+                UUID.randomUUID(),
                 FestivalName.of("마포나루 새우젓축제"),
                 FestivalDescription.of("마포구 대표 지역 축제"),
                 FestivalAddress.of("서울특별시 마포구 월드컵로 243"),

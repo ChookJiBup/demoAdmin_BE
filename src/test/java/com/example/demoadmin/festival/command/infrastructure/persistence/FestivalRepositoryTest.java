@@ -11,6 +11,7 @@ import com.example.demoadmin.festival.command.domain.vo.FestivalOperationTime;
 import com.example.demoadmin.festival.command.domain.vo.FestivalPeriod;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,7 @@ class FestivalRepositoryTest {
 
             // then
             assertThat(saved.getId()).isNotNull();
+            assertThat(saved.getPublicId()).isNotNull();
             assertThat(saved.getNameValue()).isEqualTo("마포나루 새우젓축제");
         }
     }
@@ -63,6 +65,43 @@ class FestivalRepositoryTest {
                     .get()
                     .extracting(Festival::getNameValue)
                     .isEqualTo("마포나루 새우젓축제");
+        }
+    }
+
+    @Nested
+    @DisplayName("findByPublicId")
+    class FindByPublicId {
+
+        @Test
+        @DisplayName("외부 노출용 축제 UUID로 축제 기본 정보를 조회한다")
+        void success_FindByPublicId() {
+            // given
+            Festival saved = festivalRepository.save(festival());
+
+            // when
+            var found = festivalRepository.findByPublicId(saved.getPublicId());
+
+            // then
+            assertThat(found)
+                    .isPresent()
+                    .get()
+                    .extracting(Festival::getId)
+                    .isEqualTo(saved.getId());
+        }
+
+        @Test
+        @DisplayName("일치하는 축제 UUID가 없으면 빈 결과를 반환한다")
+        void success_FindByPublicId_NotFoundBoundary() {
+            // given
+            festivalRepository.save(festival());
+
+            // when
+            var found = festivalRepository.findByPublicId(
+                    java.util.UUID.randomUUID()
+            );
+
+            // then
+            assertThat(found).isEmpty();
         }
     }
 
@@ -106,6 +145,7 @@ class FestivalRepositoryTest {
     private Festival festival() {
         return Festival.create(
                 1L,
+                UUID.randomUUID(),
                 FestivalName.of("마포나루 새우젓축제"),
                 FestivalDescription.of("마포구 대표 지역 축제"),
                 FestivalAddress.of("서울특별시 마포구 월드컵로 243"),

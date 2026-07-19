@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.util.Locale;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,10 +24,16 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(
         name = "festival_series",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_festival_series_normalized_name",
-                columnNames = "normalized_name"
-        )
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_festival_series_public_id",
+                        columnNames = "public_id"
+                ),
+                @UniqueConstraint(
+                        name = "uk_festival_series_normalized_name",
+                        columnNames = "normalized_name"
+                )
+        }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class FestivalSeries extends BaseTimeEntity {
@@ -34,6 +41,10 @@ public class FestivalSeries extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // TODO(festival): 운영 DB 반영 전 기존 festival_series 데이터의 public_id 백필 마이그레이션을 작성한다.
+    @Column(name = "public_id", nullable = false, updatable = false)
+    private UUID publicId;
 
     @Embedded
     @AttributeOverride(
@@ -46,6 +57,7 @@ public class FestivalSeries extends BaseTimeEntity {
     private String normalizedName;
 
     private FestivalSeries(FestivalName name) {
+        this.publicId = UUID.randomUUID();
         this.name = name;
         this.normalizedName = normalize(name);
     }

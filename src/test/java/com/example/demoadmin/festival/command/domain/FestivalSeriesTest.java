@@ -23,6 +23,7 @@ class FestivalSeriesTest {
             FestivalSeries festivalSeries = FestivalSeries.create(name);
 
             // then
+            assertThat(festivalSeries.getPublicId()).isNotNull();
             assertThat(festivalSeries.getNameValue())
                     .isEqualTo("마포나루 새우젓축제");
             assertThat(festivalSeries.getNormalizedName())

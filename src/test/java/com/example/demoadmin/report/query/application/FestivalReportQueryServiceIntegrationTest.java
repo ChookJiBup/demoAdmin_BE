@@ -9,7 +9,17 @@ import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.auth.support.AdminPrincipal;
+import com.example.demoadmin.festival.command.domain.Festival;
+import com.example.demoadmin.festival.command.domain.FestivalRepository;
+import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
+import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
+import com.example.demoadmin.festival.command.domain.vo.FestivalName;
+import com.example.demoadmin.festival.command.domain.vo.FestivalOperationTime;
+import com.example.demoadmin.festival.command.domain.vo.FestivalPeriod;
 import com.example.demoadmin.report.query.application.dto.FestivalReportSummaryView;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,6 +37,9 @@ class FestivalReportQueryServiceIntegrationTest {
     @Autowired
     private AdminAccountRepository adminAccountRepository;
 
+    @Autowired
+    private FestivalRepository festivalRepository;
+
     @Nested
     @DisplayName("getSummary")
     class GetSummary {
@@ -35,19 +48,19 @@ class FestivalReportQueryServiceIntegrationTest {
         @DisplayName("담당 축제 결과 보고서 요약을 조회한다")
         void success_GetSummary_FestivalOwner() {
             // given
-            Long festivalId = 1L;
+            Festival festival = festivalRepository.save(festival());
             AdminAccount adminAccount = adminAccountRepository.save(
-                    festivalOwner(festivalId)
+                    festivalOwner(festival.getId())
             );
 
             // when
             FestivalReportSummaryView view = reportQueryService.getSummary(
-                    festivalId,
+                    festival.getPublicId(),
                     principal(adminAccount)
             );
 
             // then
-            assertThat(view.festivalId()).isEqualTo(festivalId);
+            assertThat(view.festivalId()).isEqualTo(festival.getPublicId());
             assertThat(view.totalVisitorCount()).isZero();
         }
     }
@@ -68,6 +81,24 @@ class FestivalReportQueryServiceIntegrationTest {
                 AdminOrganization.of("마포구청 소속"),
                 festivalId,
                 AdminPasswordHash.of("encoded-password")
+        );
+    }
+
+    private Festival festival() {
+        return Festival.create(
+                1L,
+                UUID.randomUUID(),
+                FestivalName.of("마포나루 새우젓축제"),
+                FestivalDescription.of("마포구 대표 지역 축제"),
+                FestivalAddress.of("서울특별시 마포구 월드컵로 243"),
+                FestivalPeriod.of(
+                        LocalDate.of(2026, 10, 16),
+                        LocalDate.of(2026, 10, 18)
+                ),
+                FestivalOperationTime.of(
+                        LocalTime.of(10, 0),
+                        LocalTime.of(21, 0)
+                )
         );
     }
 }

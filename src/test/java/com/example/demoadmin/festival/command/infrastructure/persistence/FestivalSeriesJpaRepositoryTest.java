@@ -40,8 +40,33 @@ class FestivalSeriesJpaRepositoryTest {
 
             // then
             assertThat(found.getId()).isNotNull();
+            assertThat(found.getPublicId()).isNotNull();
             assertThat(found.getNameValue()).isEqualTo("마포나루 새우젓축제");
             assertThat(found.getNormalizedName()).isEqualTo("마포나루새우젓축제");
+        }
+    }
+
+    @Nested
+    @DisplayName("findByPublicId")
+    class FindByPublicId {
+
+        @Test
+        @DisplayName("축제 묶음 UUID로 DB에서 조회한다")
+        void success_FindByPublicId() {
+            // given
+            FestivalSeries saved =
+                    festivalSeriesJpaRepository.saveAndFlush(festivalSeries());
+            entityManager.clear();
+
+            // when
+            var found = festivalSeriesJpaRepository.findByPublicId(saved.getPublicId());
+
+            // then
+            assertThat(found)
+                    .isPresent()
+                    .get()
+                    .extracting(FestivalSeries::getNameValue)
+                    .isEqualTo("마포나루 새우젓축제");
         }
     }
 

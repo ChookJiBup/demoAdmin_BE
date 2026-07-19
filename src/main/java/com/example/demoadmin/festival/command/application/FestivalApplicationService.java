@@ -16,6 +16,7 @@ import com.example.demoadmin.festival.command.domain.vo.FestivalOperationTime;
 import com.example.demoadmin.festival.command.domain.vo.FestivalPeriod;
 import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +51,7 @@ public class FestivalApplicationService {
 
         Festival festival = Festival.create(
                 series.getId(),
+                series.getPublicId(),
                 name,
                 FestivalDescription.of(command.description()),
                 FestivalAddress.of(command.address()),
@@ -67,11 +69,11 @@ public class FestivalApplicationService {
     }
 
     private FestivalSeries findOrCreateSeries(
-            Long seriesId,
+            UUID seriesId,
             FestivalName name
     ) {
         if (seriesId != null) {
-            return festivalSeriesRepository.findById(seriesId)
+            return festivalSeriesRepository.findByPublicId(seriesId)
                     .orElseThrow(() -> new CustomException(
                             ErrorCode.FESTIVAL_SERIES_NOT_FOUND
                     ));
@@ -97,14 +99,14 @@ public class FestivalApplicationService {
      * 1관리자 권한으로 담당 축제의 기본 정보를 수정한다.
      */
     public Festival update(
-            Long festivalId,
+            UUID festivalId,
             UpdateFestivalCommand command,
             AdminPrincipal principal
     ) {
-        validateFestivalOwner(festivalId, principal);
-
-        Festival festival = festivalRepository.findById(festivalId)
+        AdminAccount adminAccount = findAuthenticatedAdmin(principal);
+        Festival festival = festivalRepository.findByPublicId(festivalId)
                 .orElseThrow(() -> new CustomException(ErrorCode.FESTIVAL_NOT_FOUND));
+        validateFestivalOwner(festival.getId(), adminAccount);
         festival.updateBasicInfo(
                 FestivalName.of(command.name()),
                 FestivalDescription.of(command.description()),
@@ -120,12 +122,11 @@ public class FestivalApplicationService {
     }
 
     private void validateFestivalOwner(
-            Long festivalId,
-            AdminPrincipal principal
+            Long internalFestivalId,
+            AdminAccount adminAccount
     ) {
-        AdminAccount adminAccount = findAuthenticatedAdmin(principal);
         if (!adminAccount.canModifyFestivalInfo()
-                || !festivalId.equals(adminAccount.getFestivalId())) {
+                || !internalFestivalId.equals(adminAccount.getFestivalId())) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
     }

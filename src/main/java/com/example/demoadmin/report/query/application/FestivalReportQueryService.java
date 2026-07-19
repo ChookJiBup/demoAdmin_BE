@@ -3,10 +3,13 @@ package com.example.demoadmin.report.query.application;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
 import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.auth.support.AdminPrincipal;
+import com.example.demoadmin.festival.command.domain.Festival;
+import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
 import com.example.demoadmin.report.query.application.dto.FestivalReportSummaryView;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,19 +23,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class FestivalReportQueryService {
 
     private final AdminAccountRepository adminAccountRepository;
+    private final FestivalRepository festivalRepository;
 
     /**
      * 담당 축제의 결과 보고서 요약 정보를 조회한다.
      */
     public FestivalReportSummaryView getSummary(
-            Long festivalId,
+            UUID festivalId,
             AdminPrincipal principal
     ) {
-        validateReportAccess(festivalId, principal);
+        AdminAccount adminAccount = findAuthenticatedAdmin(principal);
+        Festival festival = festivalRepository.findByPublicId(festivalId)
+                .orElseThrow(() -> new CustomException(ErrorCode.FESTIVAL_NOT_FOUND));
+        validateReportAccess(festival.getId(), adminAccount);
 
         // TODO(report): 실제 운영 DB/API 정보 확정 후 방문자, 혼잡 피크, 대기 시간 집계 결과로 교체한다.
         return new FestivalReportSummaryView(
-                festivalId,
+                festival.getPublicId(),
                 0L,
                 0L,
                 0L,
@@ -41,11 +48,10 @@ public class FestivalReportQueryService {
     }
 
     private void validateReportAccess(
-            Long festivalId,
-            AdminPrincipal principal
+            Long internalFestivalId,
+            AdminAccount adminAccount
     ) {
-        AdminAccount adminAccount = findAuthenticatedAdmin(principal);
-        if (!festivalId.equals(adminAccount.getFestivalId())
+        if (!internalFestivalId.equals(adminAccount.getFestivalId())
                 || !adminAccount.canViewOperationReport()) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }

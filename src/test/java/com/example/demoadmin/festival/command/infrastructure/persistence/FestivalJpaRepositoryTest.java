@@ -12,6 +12,7 @@ import com.example.demoadmin.festival.command.domain.vo.FestivalPeriod;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,7 @@ class FestivalJpaRepositoryTest {
 
             // then
             assertThat(found.getId()).isNotNull();
+            assertThat(found.getPublicId()).isNotNull();
             assertThat(found.getNameValue()).isEqualTo("마포나루 새우젓축제");
             assertThat(found.getStatus()).isEqualTo(FestivalStatus.DRAFT);
         }
@@ -65,6 +67,29 @@ class FestivalJpaRepositoryTest {
             // then
             assertThat(found.getStartDate()).isEqualTo(date);
             assertThat(found.getEndDate()).isEqualTo(date);
+        }
+    }
+
+    @Nested
+    @DisplayName("findByPublicId")
+    class FindByPublicId {
+
+        @Test
+        @DisplayName("외부 노출용 축제 UUID로 DB에서 조회한다")
+        void success_FindByPublicId() {
+            // given
+            Festival saved = festivalJpaRepository.saveAndFlush(festival());
+            entityManager.clear();
+
+            // when
+            var found = festivalJpaRepository.findByPublicId(saved.getPublicId());
+
+            // then
+            assertThat(found)
+                    .isPresent()
+                    .get()
+                    .extracting(Festival::getNameValue)
+                    .isEqualTo("마포나루 새우젓축제");
         }
     }
 
@@ -103,6 +128,7 @@ class FestivalJpaRepositoryTest {
     ) {
         return Festival.create(
                 1L,
+                UUID.randomUUID(),
                 FestivalName.of("마포나루 새우젓축제"),
                 FestivalDescription.of("마포구 대표 지역 축제"),
                 FestivalAddress.of("서울특별시 마포구 월드컵로 243"),

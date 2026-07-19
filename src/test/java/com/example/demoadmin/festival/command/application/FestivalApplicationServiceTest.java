@@ -30,6 +30,7 @@ import com.example.demoadmin.global.response.ErrorCode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -107,13 +108,13 @@ class FestivalApplicationServiceTest {
         @DisplayName("기존 축제 묶음 ID를 지정하면 해당 묶음에 축제를 생성한다")
         void success_Create_WithExistingSeries() {
             // given
-            CreateFestivalCommand command = createCommand(10L);
+            FestivalSeries festivalSeries = festivalSeries(10L);
+            CreateFestivalCommand command = createCommand(festivalSeries.getPublicId());
             AdminAccount adminAccount = unassignedAdmin();
             AdminPrincipal principal = principal(null, null);
-            FestivalSeries festivalSeries = festivalSeries(10L);
             given(adminAccountRepository.findById(principal.adminId()))
                     .willReturn(Optional.of(adminAccount));
-            given(festivalSeriesRepository.findById(10L))
+            given(festivalSeriesRepository.findByPublicId(festivalSeries.getPublicId()))
                     .willReturn(Optional.of(festivalSeries));
             given(festivalRepository.existsBySeriesIdAndYear(10L, 2026))
                     .willReturn(false);
@@ -129,19 +130,22 @@ class FestivalApplicationServiceTest {
 
             // then
             assertThat(festival.getSeriesId()).isEqualTo(10L);
-            then(festivalSeriesRepository).should().findById(10L);
+            assertThat(festival.getSeriesPublicId()).isEqualTo(festivalSeries.getPublicId());
+            then(festivalSeriesRepository).should()
+                    .findByPublicId(festivalSeries.getPublicId());
         }
 
         @Test
         @DisplayName("같은 축제 묶음에 같은 연도 축제가 있으면 생성할 수 없다")
         void fail_Create_DuplicatedYear_CustomException() {
             // given
-            CreateFestivalCommand command = createCommand(10L);
+            FestivalSeries festivalSeries = festivalSeries(10L);
+            CreateFestivalCommand command = createCommand(festivalSeries.getPublicId());
             AdminPrincipal principal = principal(null, null);
             given(adminAccountRepository.findById(principal.adminId()))
                     .willReturn(Optional.of(unassignedAdmin()));
-            given(festivalSeriesRepository.findById(10L))
-                    .willReturn(Optional.of(festivalSeries(10L)));
+            given(festivalSeriesRepository.findByPublicId(festivalSeries.getPublicId()))
+                    .willReturn(Optional.of(festivalSeries));
             given(festivalRepository.existsBySeriesIdAndYear(10L, 2026))
                     .willReturn(true);
 
@@ -158,11 +162,12 @@ class FestivalApplicationServiceTest {
         @DisplayName("지정한 축제 묶음이 없으면 생성할 수 없다")
         void fail_Create_SeriesNotFound_CustomException() {
             // given
-            CreateFestivalCommand command = createCommand(10L);
+            UUID seriesId = UUID.randomUUID();
+            CreateFestivalCommand command = createCommand(seriesId);
             AdminPrincipal principal = principal(null, null);
             given(adminAccountRepository.findById(principal.adminId()))
                     .willReturn(Optional.of(unassignedAdmin()));
-            given(festivalSeriesRepository.findById(10L))
+            given(festivalSeriesRepository.findByPublicId(seriesId))
                     .willReturn(Optional.empty());
 
             // when & then
@@ -184,7 +189,8 @@ class FestivalApplicationServiceTest {
         void success_Update_FestivalOwner() {
             // given
             Long festivalId = 1L;
-            Festival festival = festival();
+            Festival festival = festival(festivalId);
+            UUID publicId = festival.getPublicId();
             UpdateFestivalCommand command = updateCommand();
             AdminPrincipal principal = principal(
                     festivalId,
@@ -192,12 +198,12 @@ class FestivalApplicationServiceTest {
             );
             given(adminAccountRepository.findById(principal.adminId()))
                     .willReturn(Optional.of(festivalOwner(festivalId)));
-            given(festivalRepository.findById(festivalId))
+            given(festivalRepository.findByPublicId(publicId))
                     .willReturn(Optional.of(festival));
 
             // when
             Festival updated = festivalApplicationService.update(
-                    festivalId,
+                    publicId,
                     command,
                     principal
             );
@@ -205,18 +211,20 @@ class FestivalApplicationServiceTest {
             // then
             assertThat(updated.getNameValue()).isEqualTo(command.name());
             assertThat(updated.getAddressValue()).isEqualTo(command.address());
-            then(festivalRepository).should().findById(festivalId);
+            then(festivalRepository).should().findByPublicId(publicId);
         }
 
         @Test
         @DisplayName("서브관리자는 축제 기본 정보를 수정할 수 없다")
         void fail_Update_SubAdmin_CustomException() {
             // given
-            Long festivalId = 1L;
+            UUID festivalId = UUID.randomUUID();
             UpdateFestivalCommand command = updateCommand();
-            AdminPrincipal principal = principal(festivalId, AdminRole.SUB_ADMIN);
+            AdminPrincipal principal = principal(1L, AdminRole.SUB_ADMIN);
             given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(subAdmin(festivalId)));
+                    .willReturn(Optional.of(subAdmin(1L)));
+            given(festivalRepository.findByPublicId(festivalId))
+                    .willReturn(Optional.of(festival(1L)));
 
             // when & then
             assertThatThrownBy(() -> festivalApplicationService.update(
@@ -232,11 +240,13 @@ class FestivalApplicationServiceTest {
         @DisplayName("1관리자는 다른 축제 기본 정보를 수정할 수 없다")
         void fail_Update_DifferentFestival_CustomException() {
             // given
-            Long festivalId = 1L;
+            UUID festivalId = UUID.randomUUID();
             UpdateFestivalCommand command = updateCommand();
             AdminPrincipal principal = principal(2L, AdminRole.FESTIVAL_OWNER);
             given(adminAccountRepository.findById(principal.adminId()))
                     .willReturn(Optional.of(festivalOwner(2L)));
+            given(festivalRepository.findByPublicId(festivalId))
+                    .willReturn(Optional.of(festival(1L)));
 
             // when & then
             assertThatThrownBy(() -> festivalApplicationService.update(
@@ -253,6 +263,7 @@ class FestivalApplicationServiceTest {
         void fail_Update_FestivalNotFound_CustomException() {
             // given
             Long festivalId = 1L;
+            UUID publicId = UUID.randomUUID();
             UpdateFestivalCommand command = updateCommand();
             AdminPrincipal principal = principal(
                     festivalId,
@@ -260,12 +271,12 @@ class FestivalApplicationServiceTest {
             );
             given(adminAccountRepository.findById(principal.adminId()))
                     .willReturn(Optional.of(festivalOwner(festivalId)));
-            given(festivalRepository.findById(festivalId))
+            given(festivalRepository.findByPublicId(publicId))
                     .willReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> festivalApplicationService.update(
-                    festivalId,
+                    publicId,
                     command,
                     principal
             ))
@@ -278,6 +289,8 @@ class FestivalApplicationServiceTest {
         void fail_Update_YearChanged_CustomException() {
             // given
             Long festivalId = 1L;
+            Festival festival = festival(festivalId);
+            UUID publicId = festival.getPublicId();
             UpdateFestivalCommand command = new UpdateFestivalCommand(
                     "수정 축제",
                     "수정 설명",
@@ -293,12 +306,12 @@ class FestivalApplicationServiceTest {
             );
             given(adminAccountRepository.findById(principal.adminId()))
                     .willReturn(Optional.of(festivalOwner(festivalId)));
-            given(festivalRepository.findById(festivalId))
-                    .willReturn(Optional.of(festival()));
+            given(festivalRepository.findByPublicId(publicId))
+                    .willReturn(Optional.of(festival));
 
             // when & then
             assertThatThrownBy(() -> festivalApplicationService.update(
-                    festivalId,
+                    publicId,
                     command,
                     principal
             ))
@@ -311,7 +324,7 @@ class FestivalApplicationServiceTest {
         return createCommand(null);
     }
 
-    private CreateFestivalCommand createCommand(Long seriesId) {
+    private CreateFestivalCommand createCommand(UUID seriesId) {
         return new CreateFestivalCommand(
                 seriesId,
                 "마포나루 새우젓축제",
@@ -349,8 +362,13 @@ class FestivalApplicationServiceTest {
     }
 
     private Festival festival() {
-        return Festival.create(
+        return festival(null);
+    }
+
+    private Festival festival(Long festivalId) {
+        Festival festival = Festival.create(
                 1L,
+                UUID.randomUUID(),
                 FestivalName.of("마포나루 새우젓축제"),
                 FestivalDescription.of("마포구 대표 지역 축제"),
                 FestivalAddress.of("서울특별시 마포구 월드컵로 243"),
@@ -363,6 +381,10 @@ class FestivalApplicationServiceTest {
                         LocalTime.of(21, 0)
                 )
         );
+        if (festivalId != null) {
+            ReflectionTestUtils.setField(festival, "id", festivalId);
+        }
+        return festival;
     }
 
     private FestivalSeries festivalSeries(Long seriesId) {

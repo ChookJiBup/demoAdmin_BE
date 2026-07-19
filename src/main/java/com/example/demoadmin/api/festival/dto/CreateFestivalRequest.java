@@ -7,11 +7,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Schema(description = "축제 기본 정보 생성 요청")
 public record CreateFestivalRequest(
-        @Schema(description = "기존 축제 묶음 ID. 없으면 축제명 기준으로 자동 생성 또는 연결", example = "1")
-        Long seriesId,
+        @Schema(description = "기존 축제 묶음 UUID. 없으면 축제명 기준으로 자동 생성 또는 연결", example = "22222222-2222-2222-2222-222222222222")
+        UUID seriesId,
 
         @Schema(description = "축제명", example = "마포나루 새우젓축제")
         @NotBlank

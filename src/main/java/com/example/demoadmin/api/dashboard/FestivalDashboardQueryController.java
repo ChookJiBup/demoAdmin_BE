@@ -8,6 +8,7 @@ import com.example.demoadmin.global.response.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +34,7 @@ public class FestivalDashboardQueryController {
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping
     public ApiResponse<FestivalDashboardResponse> getDashboard(
-            @PathVariable Long festivalId,
+            @PathVariable UUID festivalId,
             @AuthenticationPrincipal AdminPrincipal principal
     ) {
         return ApiResponse.success(

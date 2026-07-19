@@ -6,8 +6,11 @@ import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.auth.command.infrastructure.JwtTokenProvider;
 import com.example.demoadmin.api.auth.dto.AdminLoginRequest;
 import com.example.demoadmin.api.auth.dto.AdminLoginResponse;
+import com.example.demoadmin.festival.command.domain.Festival;
+import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminLoginService {
 
     private final AdminAccountRepository adminAccountRepository;
+    private final FestivalRepository festivalRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -46,8 +50,19 @@ public class AdminLoginService {
         return AdminLoginResponse.of(
                 accessToken,
                 jwtTokenProvider.getAccessTokenExpirationSeconds(),
-                adminAccount
+                adminAccount,
+                findFestivalPublicId(adminAccount)
         );
+    }
+
+    private UUID findFestivalPublicId(AdminAccount adminAccount) {
+        if (adminAccount.getFestivalId() == null) {
+            return null;
+        }
+
+        return festivalRepository.findById(adminAccount.getFestivalId())
+                .map(Festival::getPublicId)
+                .orElseThrow(() -> new CustomException(ErrorCode.FESTIVAL_NOT_FOUND));
     }
 }
 

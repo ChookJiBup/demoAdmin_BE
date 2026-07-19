@@ -3,11 +3,12 @@ package com.example.demoadmin.api.dashboard.dto;
 import com.example.demoadmin.dashboard.query.application.dto.FestivalDashboardView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Schema(description = "축제 진행 중 대시보드 응답")
 public record FestivalDashboardResponse(
-        @Schema(description = "축제 ID", example = "1")
-        Long festivalId,
+        @Schema(description = "외부 노출용 축제 ID", example = "11111111-1111-1111-1111-111111111111")
+        UUID festivalId,
         @Schema(description = "운영 상태", example = "PREPARING")
         String operatingStatus,
         @Schema(description = "현재 방문자 수", example = "0")

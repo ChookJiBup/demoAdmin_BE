@@ -12,10 +12,20 @@ import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.auth.support.AdminPrincipal;
+import com.example.demoadmin.festival.command.domain.Festival;
+import com.example.demoadmin.festival.command.domain.FestivalRepository;
+import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
+import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
+import com.example.demoadmin.festival.command.domain.vo.FestivalName;
+import com.example.demoadmin.festival.command.domain.vo.FestivalOperationTime;
+import com.example.demoadmin.festival.command.domain.vo.FestivalPeriod;
 import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
 import com.example.demoadmin.report.query.application.dto.FestivalReportSummaryView;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class FestivalReportQueryServiceTest {
@@ -33,6 +44,9 @@ class FestivalReportQueryServiceTest {
     @Mock
     private AdminAccountRepository adminAccountRepository;
 
+    @Mock
+    private FestivalRepository festivalRepository;
+
     @Nested
     @DisplayName("getSummary")
     class GetSummary {
@@ -42,18 +56,22 @@ class FestivalReportQueryServiceTest {
         void success_GetSummary_FestivalOwner() {
             // given
             Long festivalId = 1L;
+            Festival festival = festival(festivalId);
+            UUID publicId = festival.getPublicId();
             AdminPrincipal principal = principal(festivalId, AdminRole.FESTIVAL_OWNER);
+            given(festivalRepository.findByPublicId(publicId))
+                    .willReturn(Optional.of(festival));
             given(adminAccountRepository.findById(principal.adminId()))
                     .willReturn(Optional.of(festivalOwner(festivalId)));
 
             // when
             FestivalReportSummaryView view = reportQueryService.getSummary(
-                    festivalId,
+                    publicId,
                     principal
             );
 
             // then
-            assertThat(view.festivalId()).isEqualTo(festivalId);
+            assertThat(view.festivalId()).isEqualTo(publicId);
             assertThat(view.totalVisitorCount()).isZero();
             assertThat(view.peakConcurrentVisitorCount()).isZero();
         }
@@ -62,14 +80,17 @@ class FestivalReportQueryServiceTest {
         @DisplayName("다른 축제의 결과 보고서 요약은 조회할 수 없다")
         void fail_GetSummary_DifferentFestival_CustomException() {
             // given
-            Long festivalId = 1L;
+            Festival festival = festival(1L);
+            UUID publicId = festival.getPublicId();
             AdminPrincipal principal = principal(2L, AdminRole.FESTIVAL_OWNER);
+            given(festivalRepository.findByPublicId(publicId))
+                    .willReturn(Optional.of(festival));
             given(adminAccountRepository.findById(principal.adminId()))
                     .willReturn(Optional.of(festivalOwner(2L)));
 
             // when & then
             assertThatThrownBy(() -> reportQueryService.getSummary(
-                    festivalId,
+                    publicId,
                     principal
             ))
                     .isInstanceOf(CustomException.class)
@@ -80,14 +101,17 @@ class FestivalReportQueryServiceTest {
         @DisplayName("축제에 배정되지 않은 관리자는 결과 보고서 요약을 조회할 수 없다")
         void fail_GetSummary_UnassignedAdmin_CustomException() {
             // given
-            Long festivalId = 1L;
+            Festival festival = festival(1L);
+            UUID publicId = festival.getPublicId();
             AdminPrincipal principal = principal(null, null);
+            given(festivalRepository.findByPublicId(publicId))
+                    .willReturn(Optional.of(festival));
             given(adminAccountRepository.findById(principal.adminId()))
                     .willReturn(Optional.of(unassignedAdmin()));
 
             // when & then
             assertThatThrownBy(() -> reportQueryService.getSummary(
-                    festivalId,
+                    publicId,
                     principal
             ))
                     .isInstanceOf(CustomException.class)
@@ -120,5 +144,25 @@ class FestivalReportQueryServiceTest {
         AdminAccount adminAccount = unassignedAdmin();
         adminAccount.assignFestivalOwner(festivalId);
         return adminAccount;
+    }
+
+    private Festival festival(Long festivalId) {
+        Festival festival = Festival.create(
+                1L,
+                UUID.randomUUID(),
+                FestivalName.of("마포나루 새우젓축제"),
+                FestivalDescription.of("마포구 대표 지역 축제"),
+                FestivalAddress.of("서울특별시 마포구 월드컵로 243"),
+                FestivalPeriod.of(
+                        LocalDate.of(2026, 10, 16),
+                        LocalDate.of(2026, 10, 18)
+                ),
+                FestivalOperationTime.of(
+                        LocalTime.of(10, 0),
+                        LocalTime.of(21, 0)
+                )
+        );
+        ReflectionTestUtils.setField(festival, "id", festivalId);
+        return festival;
     }
 }

@@ -13,9 +13,19 @@ import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.api.auth.dto.AdminLoginRequest;
 import com.example.demoadmin.api.auth.dto.AdminLoginResponse;
 import com.example.demoadmin.auth.command.infrastructure.JwtTokenProvider;
+import com.example.demoadmin.festival.command.domain.Festival;
+import com.example.demoadmin.festival.command.domain.FestivalRepository;
+import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
+import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
+import com.example.demoadmin.festival.command.domain.vo.FestivalName;
+import com.example.demoadmin.festival.command.domain.vo.FestivalOperationTime;
+import com.example.demoadmin.festival.command.domain.vo.FestivalPeriod;
 import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,6 +34,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class AdminLoginServiceTest {
@@ -33,6 +44,9 @@ class AdminLoginServiceTest {
 
     @Mock
     private AdminAccountRepository adminAccountRepository;
+
+    @Mock
+    private FestivalRepository festivalRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -68,6 +82,34 @@ class AdminLoginServiceTest {
             assertThat(response.accessToken()).isEqualTo("access-token");
             assertThat(response.expiresIn()).isEqualTo(1800L);
             assertThat(response.admin().email()).isEqualTo(request.email());
+        }
+
+        @Test
+        @DisplayName("축제에 배정된 관리자는 축제 UUID를 포함해 로그인한다")
+        void success_Login_WithFestivalPublicId() {
+            // given
+            AdminLoginRequest request = loginRequest();
+            Festival festival = festival(1L);
+            AdminAccount adminAccount = festivalOwner(festival.getId());
+            given(adminAccountRepository.findByEmail(AdminEmail.of(request.email())))
+                    .willReturn(Optional.of(adminAccount));
+            given(passwordEncoder.matches(
+                    request.password(),
+                    adminAccount.getPasswordHashValue()
+            )).willReturn(true);
+            given(jwtTokenProvider.createAccessToken(adminAccount))
+                    .willReturn("access-token");
+            given(jwtTokenProvider.getAccessTokenExpirationSeconds())
+                    .willReturn(1800L);
+            given(festivalRepository.findById(festival.getId()))
+                    .willReturn(Optional.of(festival));
+
+            // when
+            AdminLoginResponse response = adminLoginService.login(request);
+
+            // then
+            assertThat(response.admin().festivalId())
+                    .isEqualTo(festival.getPublicId());
         }
 
         @Test
@@ -118,5 +160,35 @@ class AdminLoginServiceTest {
                 AdminOrganization.of("마포구청 소속"),
                 AdminPasswordHash.of("encoded-password")
         );
+    }
+
+    private AdminAccount festivalOwner(Long festivalId) {
+        return AdminAccount.createFestivalOwner(
+                AdminEmail.of("admin@mapo.go.kr"),
+                AdminName.of("홍길동"),
+                AdminOrganization.of("마포구청 소속"),
+                festivalId,
+                AdminPasswordHash.of("encoded-password")
+        );
+    }
+
+    private Festival festival(Long festivalId) {
+        Festival festival = Festival.create(
+                1L,
+                UUID.randomUUID(),
+                FestivalName.of("마포나루 새우젓축제"),
+                FestivalDescription.of("마포구 대표 지역 축제"),
+                FestivalAddress.of("서울특별시 마포구 월드컵로 243"),
+                FestivalPeriod.of(
+                        LocalDate.of(2026, 10, 16),
+                        LocalDate.of(2026, 10, 18)
+                ),
+                FestivalOperationTime.of(
+                        LocalTime.of(10, 0),
+                        LocalTime.of(21, 0)
+                )
+        );
+        ReflectionTestUtils.setField(festival, "id", festivalId);
+        return festival;
     }
 }
