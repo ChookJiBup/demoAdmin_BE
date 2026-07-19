@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Check test changes
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE_SHA="${{ github.event.before }}"
+          fi
+
+          if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then
+            BASE_SHA="$(git rev-list --max-parents=0 HEAD)"
+          fi
+
+          CHANGED_FILES="$(git diff --name-only "$BASE_SHA" HEAD)"
+          MAIN_CHANGED="$(printf '%s\n' "$CHANGED_FILES" | grep -E '^src/main/java/.*\.java$' || true)"
+          TEST_CHANGED="$(printf '%s\n' "$CHANGED_FILES" | grep -E '^src/test/java/.*Test\.java$' || true)"
+
+          if [[ -n "$MAIN_CHANGED" && -z "$TEST_CHANGED" ]]; then
+            echo "src/main/java 변경이 있지만 테스트 변경이 없습니다."
+            echo "$MAIN_CHANGED"
+            exit 1
+          fi
+
+      - name: Grant execute permission for Gradle
+        run: chmod +x ./gradlew
+
+      - name: Run tests
+        run: ./gradlew test --no-daemon
