@@ -24,7 +24,7 @@
 ## 백엔드 세부 가이드 참조 규칙
 
 - 패키지 구조, 도메인 위치, Command/Query 분리를 수정하기 전에는 `docs/backend-guides/01_아키텍처_구조_가이드.md`를 읽는다.
-- Application Service, Repository wrapper Service, Facade, Aggregate, Repository 구조를 만들거나 수정하기 전에는 `docs/backend-guides/02_계층별_책임_가이드.md`를 읽는다.
+- Application Service, Repository wrapper Service, Facade, Aggregate, Repository 구조를 만들거나 수정하기 전에는 `docs/backend-guides/02_계층별_책임_가이드.md`를 읽는다. Service에서 Repository 접근이 필요하면 직접 접근하지 않고 해당 도메인의 Repository wrapper Service를 먼저 사용한다.
 - VO를 만들거나 Entity에 embedding 하기 전에는 `docs/backend-guides/02_계층별_책임_가이드.md`와 `docs/backend-guides/06_구현품질_JPA_트랜잭션_빌드_가이드.md`를 읽는다.
 - Controller, Request/Response DTO, Command DTO, API 응답, 예외 응답, Swagger/OpenAPI를 만들거나 수정하기 전에는 `docs/backend-guides/03_DTO_API_Swagger_예외_가이드.md`를 읽는다.
 - 상태 전이, 동시성 제어, Redis, 메시지 브로커, 외부 API 연동을 만들거나 수정하기 전에는 `docs/backend-guides/04_도메인_동시성_외부인프라_가이드.md`를 읽는다.

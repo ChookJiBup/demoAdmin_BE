@@ -8,7 +8,8 @@
 | Repository wrapper Service | `[domain명]Service` |
 | 특정 행위 유스케이스 | `[domain명][행위]Service` |
 | 광범위한 유스케이스 | `[domain명]ApplicationService` |
-| 조회 유스케이스 | `QueryService` |
+| 조회 Repository wrapper Service | `[domain명]QueryService` |
+| 광범위한 조회 유스케이스 | `[domain명]QueryApplicationService` |
 | 복합 흐름 | `Facade` |
 | 저장 계약 | `Repository` |
 | JPA 저장소 | `JpaRepository` |
@@ -26,9 +27,12 @@
 메서드는 의미 있는 동사로 작성한다.
 
 `[domain명]Service`는 `[domain명]Repository`를 감싸는 wrapper Service class에만 사용한다.
+조회 Repository를 감싸는 경우에는 `[domain명]QueryService`를 wrapper Service로 사용한다.
 실제 흐름을 담당하는 경우에는 `FestivalCreateService`, `AdminSignupService`처럼
 도메인명과 행위를 함께 드러낸다.
 특정 행위 하나로 좁히기 어려운 광범위한 기능은 `FestivalApplicationService`처럼 작성한다.
+wrapper Service를 제외한 모든 Service는 Repository를 직접 주입하지 않고
+필요한 도메인 조회와 저장을 wrapper Service를 통해 수행한다.
 
 좋은 예:
 

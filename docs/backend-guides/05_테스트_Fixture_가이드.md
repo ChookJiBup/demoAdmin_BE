@@ -119,7 +119,7 @@ class ResourceCommandServiceTest {
     private ResourceCommandService resourceService;
 
     @Mock
-    private ResourceRepository resourceRepository;
+    private ResourceService resourceWrapperService;
 
     private Resource resource;
 
@@ -132,7 +132,7 @@ class ResourceCommandServiceTest {
     @DisplayName("대상을 생성한다")
     void success_Create() {
         // given
-        given(resourceRepository.save(any(Resource.class)))
+        given(resourceWrapperService.save(any(Resource.class)))
                 .willReturn(resource);
 
         // when
@@ -143,7 +143,7 @@ class ResourceCommandServiceTest {
         // then
         assertThat(resourceId).isEqualTo(resource.getId());
 
-        then(resourceRepository)
+        then(resourceWrapperService)
                 .should(times(1))
                 .save(any(Resource.class));
     }
@@ -155,12 +155,12 @@ Mockito 스타일은 한 파일에서 통일한다.
 권장:
 
 ```java
-given(repository.findById(id))
-        .willReturn(Optional.of(resource));
+given(resourceWrapperService.getById(id))
+        .willReturn(resource);
 
-then(repository)
+then(resourceWrapperService)
         .should()
-        .findById(id);
+        .getById(id);
 ```
 
 ---
@@ -176,7 +176,7 @@ class ResourceServiceIntegrationTest {
     private ResourceCommandService resourceService;
 
     @Autowired
-    private ResourceJpaRepository resourceRepository;
+    private ResourceService resourceWrapperService;
 
     @Test
     @DisplayName("생성한 대상이 DB에 저장된다")
@@ -189,9 +189,7 @@ class ResourceServiceIntegrationTest {
         Long id = resourceService.create(command);
 
         // then
-        Resource saved = resourceRepository
-                .findById(id)
-                .orElseThrow();
+        Resource saved = resourceWrapperService.getById(id);
 
         assertThat(saved.getName())
                 .isEqualTo(command.name());
@@ -412,6 +410,9 @@ Controller를 제외한 모든 운영 클래스는 단위 테스트를 작성한
 
 Repository wrapper Service는 Repository 호출을 얇게 감싸는 용도이므로
 통합 테스트 필수 대상에서 제외한다.
+
+Service 단위 테스트에서 Repository 호출을 검증할 때도 wrapper Service를 mock으로 둔다.
+Repository mock은 Repository wrapper Service 자체를 테스트할 때만 사용한다.
 
 단, Controller는 기본 필수 범위에서 제외한다.
 Controller 테스트가 필요한 경우는 다음과 같다.

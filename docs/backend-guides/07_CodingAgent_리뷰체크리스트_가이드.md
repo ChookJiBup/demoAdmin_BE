@@ -19,19 +19,21 @@
 
 1. 도메인 규칙과 VO
 2. Repository 또는 Port 계약
-3. Application Service
-4. Infrastructure 구현
-5. Request와 Response
-6. `api/` 패키지의 Controller와 DTO
-7. 단위 테스트
-8. 통합 테스트
-9. 동시성 테스트
-10. 설정과 migration
+3. Repository wrapper Service
+4. Application Service
+5. Infrastructure 구현
+6. Request와 Response
+7. `api/` 패키지의 Controller와 DTO
+8. 단위 테스트
+9. 통합 테스트
+10. 동시성 테스트
+11. 설정과 migration
 
 ## 금지
 
 - 다른 도메인의 내부 package 직접 참조
 - Controller에서 Repository 호출
+- wrapper Service를 제외한 Service에서 Repository 직접 호출
 - 도메인 내부에 HTTP Controller 추가
 - Service에서 RedisTemplate 직접 조작
 - Entity public setter 추가
@@ -91,7 +93,7 @@ create(new CreateResourceCommand(
 - 이름으로 책임 설명 가능
 - public 메서드 최소화
 - 의존성이 많으면 책임 분리
-- 여러 도메인 Repository를 다루면 Facade 검토
+- 여러 도메인 wrapper Service를 다루면 Facade 검토
 - `Util`, `Manager`, `Helper` 이름 남용 금지
 
 ## 주석
@@ -162,6 +164,8 @@ public interface AdminAccountRepository {
 
 - [ ] 유스케이스 순서만 조정하는가
 - [ ] 규칙이 Service에 몰리지 않았는가
+- [ ] Repository 접근은 wrapper Service로만 수행하는가
+- [ ] wrapper Service를 제외한 Service가 Repository를 직접 주입하지 않는가
 - [ ] Facade 분리가 필요한가
 - [ ] 트랜잭션 범위가 적절한가
 - [ ] 외부 호출이 긴 트랜잭션 안에 있지 않은가
