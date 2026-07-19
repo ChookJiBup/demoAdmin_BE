@@ -7,6 +7,8 @@ import com.example.demoadmin.festival.command.application.dto.CreateFestivalComm
 import com.example.demoadmin.festival.command.application.dto.UpdateFestivalCommand;
 import com.example.demoadmin.festival.command.domain.Festival;
 import com.example.demoadmin.festival.command.domain.FestivalRepository;
+import com.example.demoadmin.festival.command.domain.FestivalSeries;
+import com.example.demoadmin.festival.command.domain.FestivalSeriesRepository;
 import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
 import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 축제 기본 정보 생성 유스케이스를 조정한다.
+ * 축제 기본 정보 생성과 수정 유스케이스를 조정한다.
  */
 @Service
 @RequiredArgsConstructor
@@ -27,21 +29,31 @@ import org.springframework.transaction.annotation.Transactional;
 public class FestivalApplicationService {
 
     private final FestivalRepository festivalRepository;
+    private final FestivalSeriesRepository festivalSeriesRepository;
     private final AdminAccountRepository adminAccountRepository;
 
     /**
-     * 임시 기준의 축제 기본 정보를 저장하고 생성자를 1관리자로 배정한다.
+     * 축제 묶음을 연결한 뒤 연도별 축제 기본 정보를 저장하고 생성자를 1관리자로 배정한다.
      */
     public Festival create(
             CreateFestivalCommand command,
             AdminPrincipal principal
     ) {
         AdminAccount creator = findAuthenticatedAdmin(principal);
+        FestivalName name = FestivalName.of(command.name());
+        FestivalPeriod period = FestivalPeriod.of(
+                command.startDate(),
+                command.endDate()
+        );
+        FestivalSeries series = findOrCreateSeries(command.seriesId(), name);
+        validateUniqueFestivalYear(series.getId(), period.getStartDate().getYear());
+
         Festival festival = Festival.create(
-                FestivalName.of(command.name()),
+                series.getId(),
+                name,
                 FestivalDescription.of(command.description()),
                 FestivalAddress.of(command.address()),
-                FestivalPeriod.of(command.startDate(), command.endDate()),
+                period,
                 FestivalOperationTime.of(
                         command.operationStartTime(),
                         command.operationEndTime()
@@ -52,6 +64,33 @@ public class FestivalApplicationService {
         creator.assignFestivalOwner(savedFestival.getId());
 
         return savedFestival;
+    }
+
+    private FestivalSeries findOrCreateSeries(
+            Long seriesId,
+            FestivalName name
+    ) {
+        if (seriesId != null) {
+            return festivalSeriesRepository.findById(seriesId)
+                    .orElseThrow(() -> new CustomException(
+                            ErrorCode.FESTIVAL_SERIES_NOT_FOUND
+                    ));
+        }
+
+        String normalizedName = FestivalSeries.normalize(name);
+        return festivalSeriesRepository.findByNormalizedName(normalizedName)
+                .orElseGet(() -> festivalSeriesRepository.save(
+                        FestivalSeries.create(name)
+                ));
+    }
+
+    private void validateUniqueFestivalYear(
+            Long seriesId,
+            int year
+    ) {
+        if (festivalRepository.existsBySeriesIdAndYear(seriesId, year)) {
+            throw new CustomException(ErrorCode.FESTIVAL_YEAR_ALREADY_EXISTS);
+        }
     }
 
     /**

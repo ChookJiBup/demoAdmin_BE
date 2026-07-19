@@ -68,6 +68,28 @@ class FestivalJpaRepositoryTest {
         }
     }
 
+    @Nested
+    @DisplayName("existsBySeriesIdAndYear")
+    class ExistsBySeriesIdAndYear {
+
+        @Test
+        @DisplayName("축제 묶음과 개최 연도로 DB에서 존재 여부를 확인한다")
+        void success_ExistsBySeriesIdAndYear() {
+            // given
+            festivalJpaRepository.saveAndFlush(festival());
+            entityManager.clear();
+
+            // when
+            boolean exists = festivalJpaRepository.existsBySeriesIdAndYear(
+                    1L,
+                    2026
+            );
+
+            // then
+            assertThat(exists).isTrue();
+        }
+    }
+
     private Festival festival() {
         return festival(
                 LocalDate.of(2026, 10, 16),
@@ -80,6 +102,7 @@ class FestivalJpaRepositoryTest {
             LocalDate endDate
     ) {
         return Festival.create(
+                1L,
                 FestivalName.of("마포나루 새우젓축제"),
                 FestivalDescription.of("마포구 대표 지역 축제"),
                 FestivalAddress.of("서울특별시 마포구 월드컵로 243"),

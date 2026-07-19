@@ -13,6 +13,7 @@ import com.example.demoadmin.auth.support.AdminPrincipal;
 import com.example.demoadmin.festival.command.application.dto.CreateFestivalCommand;
 import com.example.demoadmin.festival.command.domain.Festival;
 import com.example.demoadmin.festival.command.domain.FestivalRepository;
+import com.example.demoadmin.festival.command.domain.FestivalSeriesRepository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +32,9 @@ class FestivalApplicationServiceIntegrationTest {
 
     @Autowired
     private FestivalRepository festivalRepository;
+
+    @Autowired
+    private FestivalSeriesRepository festivalSeriesRepository;
 
     @Autowired
     private AdminAccountRepository adminAccountRepository;
@@ -62,6 +66,10 @@ class FestivalApplicationServiceIntegrationTest {
                     .findById(festival.getId())
                     .orElseThrow();
             assertThat(foundFestival.getNameValue()).isEqualTo(command.name());
+            assertThat(foundFestival.getSeriesId()).isNotNull();
+            assertThat(foundFestival.getYear()).isEqualTo(2026);
+            assertThat(festivalSeriesRepository.findById(foundFestival.getSeriesId()))
+                    .isPresent();
             assertThat(foundAdmin.getFestivalId()).isEqualTo(foundFestival.getId());
             assertThat(foundAdmin.getRole()).isEqualTo(AdminRole.FESTIVAL_OWNER);
         }
@@ -69,6 +77,7 @@ class FestivalApplicationServiceIntegrationTest {
 
     private CreateFestivalCommand createCommand() {
         return new CreateFestivalCommand(
+                null,
                 "마포나루 새우젓축제",
                 "마포구 대표 지역 축제",
                 "서울특별시 마포구 월드컵로 243",

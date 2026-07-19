@@ -28,6 +28,9 @@ public enum ErrorCode {
     AUTH_ADMIN_ALREADY_ASSIGNED(40903, HttpStatus.CONFLICT, "이미 관리 중인 축제가 있는 관리자입니다."),
 
     FESTIVAL_NOT_FOUND(40401, HttpStatus.NOT_FOUND, "축제를 찾을 수 없습니다."),
+    FESTIVAL_SERIES_NOT_FOUND(40402, HttpStatus.NOT_FOUND, "축제 묶음을 찾을 수 없습니다."),
+    FESTIVAL_YEAR_ALREADY_EXISTS(40904, HttpStatus.CONFLICT, "해당 축제 묶음에는 이미 같은 연도 축제가 존재합니다."),
+    FESTIVAL_YEAR_CANNOT_BE_CHANGED(40905, HttpStatus.CONFLICT, "축제 개최 연도는 수정할 수 없습니다."),
 
     INTERNAL_SERVER_ERROR(50000, HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러가 발생하였습니다.");
 

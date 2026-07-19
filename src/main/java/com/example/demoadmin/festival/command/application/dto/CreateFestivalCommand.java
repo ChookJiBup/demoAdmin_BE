@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record CreateFestivalCommand(
+        Long seriesId,
         String name,
         String description,
         String address,

@@ -18,6 +18,8 @@ import com.example.demoadmin.festival.command.application.dto.CreateFestivalComm
 import com.example.demoadmin.festival.command.application.dto.UpdateFestivalCommand;
 import com.example.demoadmin.festival.command.domain.Festival;
 import com.example.demoadmin.festival.command.domain.FestivalRepository;
+import com.example.demoadmin.festival.command.domain.FestivalSeries;
+import com.example.demoadmin.festival.command.domain.FestivalSeriesRepository;
 import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
 import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
@@ -48,6 +50,9 @@ class FestivalApplicationServiceTest {
     private FestivalRepository festivalRepository;
 
     @Mock
+    private FestivalSeriesRepository festivalSeriesRepository;
+
+    @Mock
     private AdminAccountRepository adminAccountRepository;
 
     @Nested
@@ -63,6 +68,16 @@ class FestivalApplicationServiceTest {
             AdminPrincipal principal = principal(null, null);
             given(adminAccountRepository.findById(principal.adminId()))
                     .willReturn(Optional.of(adminAccount));
+            given(festivalSeriesRepository.findByNormalizedName("마포나루새우젓축제"))
+                    .willReturn(Optional.empty());
+            given(festivalSeriesRepository.save(any(FestivalSeries.class)))
+                    .willAnswer(invocation -> {
+                        FestivalSeries festivalSeries = invocation.getArgument(0);
+                        ReflectionTestUtils.setField(festivalSeries, "id", 10L);
+                        return festivalSeries;
+                    });
+            given(festivalRepository.existsBySeriesIdAndYear(10L, 2026))
+                    .willReturn(false);
             given(festivalRepository.save(any(Festival.class)))
                     .willAnswer(invocation -> {
                         Festival festival = invocation.getArgument(0);
@@ -75,6 +90,8 @@ class FestivalApplicationServiceTest {
 
             // then
             assertThat(festival.getNameValue()).isEqualTo(command.name());
+            assertThat(festival.getSeriesId()).isEqualTo(10L);
+            assertThat(festival.getYear()).isEqualTo(2026);
             assertThat(festival.getStartDate()).isEqualTo(command.startDate());
             assertThat(adminAccount.getFestivalId()).isEqualTo(festival.getId());
             assertThat(adminAccount.getRole()).isEqualTo(AdminRole.FESTIVAL_OWNER);
@@ -84,6 +101,77 @@ class FestivalApplicationServiceTest {
             then(festivalRepository).should().save(captor.capture());
             assertThat(captor.getValue().getAddressValue())
                     .isEqualTo(command.address());
+        }
+
+        @Test
+        @DisplayName("기존 축제 묶음 ID를 지정하면 해당 묶음에 축제를 생성한다")
+        void success_Create_WithExistingSeries() {
+            // given
+            CreateFestivalCommand command = createCommand(10L);
+            AdminAccount adminAccount = unassignedAdmin();
+            AdminPrincipal principal = principal(null, null);
+            FestivalSeries festivalSeries = festivalSeries(10L);
+            given(adminAccountRepository.findById(principal.adminId()))
+                    .willReturn(Optional.of(adminAccount));
+            given(festivalSeriesRepository.findById(10L))
+                    .willReturn(Optional.of(festivalSeries));
+            given(festivalRepository.existsBySeriesIdAndYear(10L, 2026))
+                    .willReturn(false);
+            given(festivalRepository.save(any(Festival.class)))
+                    .willAnswer(invocation -> {
+                        Festival festival = invocation.getArgument(0);
+                        ReflectionTestUtils.setField(festival, "id", 1L);
+                        return festival;
+                    });
+
+            // when
+            Festival festival = festivalApplicationService.create(command, principal);
+
+            // then
+            assertThat(festival.getSeriesId()).isEqualTo(10L);
+            then(festivalSeriesRepository).should().findById(10L);
+        }
+
+        @Test
+        @DisplayName("같은 축제 묶음에 같은 연도 축제가 있으면 생성할 수 없다")
+        void fail_Create_DuplicatedYear_CustomException() {
+            // given
+            CreateFestivalCommand command = createCommand(10L);
+            AdminPrincipal principal = principal(null, null);
+            given(adminAccountRepository.findById(principal.adminId()))
+                    .willReturn(Optional.of(unassignedAdmin()));
+            given(festivalSeriesRepository.findById(10L))
+                    .willReturn(Optional.of(festivalSeries(10L)));
+            given(festivalRepository.existsBySeriesIdAndYear(10L, 2026))
+                    .willReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> festivalApplicationService.create(
+                    command,
+                    principal
+            ))
+                    .isInstanceOf(CustomException.class)
+                    .hasMessage(ErrorCode.FESTIVAL_YEAR_ALREADY_EXISTS.getMessage());
+        }
+
+        @Test
+        @DisplayName("지정한 축제 묶음이 없으면 생성할 수 없다")
+        void fail_Create_SeriesNotFound_CustomException() {
+            // given
+            CreateFestivalCommand command = createCommand(10L);
+            AdminPrincipal principal = principal(null, null);
+            given(adminAccountRepository.findById(principal.adminId()))
+                    .willReturn(Optional.of(unassignedAdmin()));
+            given(festivalSeriesRepository.findById(10L))
+                    .willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> festivalApplicationService.create(
+                    command,
+                    principal
+            ))
+                    .isInstanceOf(CustomException.class)
+                    .hasMessage(ErrorCode.FESTIVAL_SERIES_NOT_FOUND.getMessage());
         }
     }
 
@@ -184,10 +272,48 @@ class FestivalApplicationServiceTest {
                     .isInstanceOf(CustomException.class)
                     .hasMessage(ErrorCode.FESTIVAL_NOT_FOUND.getMessage());
         }
+
+        @Test
+        @DisplayName("축제 개최 연도가 바뀌는 기본 정보 수정은 할 수 없다")
+        void fail_Update_YearChanged_CustomException() {
+            // given
+            Long festivalId = 1L;
+            UpdateFestivalCommand command = new UpdateFestivalCommand(
+                    "수정 축제",
+                    "수정 설명",
+                    "서울특별시 마포구 수정로 1",
+                    LocalDate.of(2027, 11, 1),
+                    LocalDate.of(2027, 11, 3),
+                    LocalTime.of(9, 0),
+                    LocalTime.of(20, 0)
+            );
+            AdminPrincipal principal = principal(
+                    festivalId,
+                    AdminRole.FESTIVAL_OWNER
+            );
+            given(adminAccountRepository.findById(principal.adminId()))
+                    .willReturn(Optional.of(festivalOwner(festivalId)));
+            given(festivalRepository.findById(festivalId))
+                    .willReturn(Optional.of(festival()));
+
+            // when & then
+            assertThatThrownBy(() -> festivalApplicationService.update(
+                    festivalId,
+                    command,
+                    principal
+            ))
+                    .isInstanceOf(CustomException.class)
+                    .hasMessage(ErrorCode.FESTIVAL_YEAR_CANNOT_BE_CHANGED.getMessage());
+        }
     }
 
     private CreateFestivalCommand createCommand() {
+        return createCommand(null);
+    }
+
+    private CreateFestivalCommand createCommand(Long seriesId) {
         return new CreateFestivalCommand(
+                seriesId,
                 "마포나루 새우젓축제",
                 "마포구 대표 지역 축제",
                 "서울특별시 마포구 월드컵로 243",
@@ -224,6 +350,7 @@ class FestivalApplicationServiceTest {
 
     private Festival festival() {
         return Festival.create(
+                1L,
                 FestivalName.of("마포나루 새우젓축제"),
                 FestivalDescription.of("마포구 대표 지역 축제"),
                 FestivalAddress.of("서울특별시 마포구 월드컵로 243"),
@@ -236,6 +363,14 @@ class FestivalApplicationServiceTest {
                         LocalTime.of(21, 0)
                 )
         );
+    }
+
+    private FestivalSeries festivalSeries(Long seriesId) {
+        FestivalSeries festivalSeries = FestivalSeries.create(
+                FestivalName.of("마포나루 새우젓축제")
+        );
+        ReflectionTestUtils.setField(festivalSeries, "id", seriesId);
+        return festivalSeries;
     }
 
     private AdminAccount unassignedAdmin() {

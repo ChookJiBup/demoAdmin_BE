@@ -10,6 +10,9 @@ import java.time.LocalTime;
 
 @Schema(description = "축제 기본 정보 생성 요청")
 public record CreateFestivalRequest(
+        @Schema(description = "기존 축제 묶음 ID. 없으면 축제명 기준으로 자동 생성 또는 연결", example = "1")
+        Long seriesId,
+
         @Schema(description = "축제명", example = "마포나루 새우젓축제")
         @NotBlank
         @Size(min = 2, max = 100)
@@ -47,6 +50,7 @@ public record CreateFestivalRequest(
      */
     public CreateFestivalCommand toCommand() {
         return new CreateFestivalCommand(
+                seriesId,
                 name,
                 description,
                 address,

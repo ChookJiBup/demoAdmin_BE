@@ -9,6 +9,10 @@ import java.time.LocalTime;
 public record UpdateFestivalResponse(
         @Schema(description = "축제 ID", example = "1")
         Long festivalId,
+        @Schema(description = "같은 축제를 연도별로 묶는 축제 묶음 ID", example = "10")
+        Long seriesId,
+        @Schema(description = "개최 연도", example = "2026")
+        int year,
         @Schema(description = "축제명", example = "마포나루 새우젓축제")
         String name,
         @Schema(description = "축제 설명", example = "마포구 대표 지역 축제")
@@ -31,6 +35,8 @@ public record UpdateFestivalResponse(
     public static UpdateFestivalResponse from(Festival festival) {
         return new UpdateFestivalResponse(
                 festival.getId(),
+                festival.getSeriesId(),
+                festival.getYear(),
                 festival.getNameValue(),
                 festival.getDescriptionValue(),
                 festival.getAddressValue(),

@@ -66,8 +66,46 @@ class FestivalRepositoryTest {
         }
     }
 
+    @Nested
+    @DisplayName("existsBySeriesIdAndYear")
+    class ExistsBySeriesIdAndYear {
+
+        @Test
+        @DisplayName("축제 묶음의 개최 연도 존재 여부를 확인한다")
+        void success_ExistsBySeriesIdAndYear() {
+            // given
+            festivalRepository.save(festival());
+
+            // when
+            boolean exists = festivalRepository.existsBySeriesIdAndYear(
+                    1L,
+                    2026
+            );
+
+            // then
+            assertThat(exists).isTrue();
+        }
+
+        @Test
+        @DisplayName("없는 개최 연도는 false를 반환한다")
+        void success_ExistsBySeriesIdAndYear_NotFoundBoundary() {
+            // given
+            festivalRepository.save(festival());
+
+            // when
+            boolean exists = festivalRepository.existsBySeriesIdAndYear(
+                    1L,
+                    2025
+            );
+
+            // then
+            assertThat(exists).isFalse();
+        }
+    }
+
     private Festival festival() {
         return Festival.create(
+                1L,
                 FestivalName.of("마포나루 새우젓축제"),
                 FestivalDescription.of("마포구 대표 지역 축제"),
                 FestivalAddress.of("서울특별시 마포구 월드컵로 243"),

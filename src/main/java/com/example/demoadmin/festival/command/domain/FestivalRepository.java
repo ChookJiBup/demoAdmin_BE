@@ -16,4 +16,9 @@ public interface FestivalRepository {
      * 축제 ID로 축제 기본 정보를 조회한다.
      */
     Optional<Festival> findById(Long festivalId);
+
+    /**
+     * 지정한 축제 묶음의 특정 개최 연도 축제가 이미 존재하는지 확인한다.
+     */
+    boolean existsBySeriesIdAndYear(Long seriesId, int year);
 }

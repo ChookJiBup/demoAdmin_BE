@@ -6,6 +6,8 @@ import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
 import com.example.demoadmin.festival.command.domain.vo.FestivalOperationTime;
 import com.example.demoadmin.festival.command.domain.vo.FestivalPeriod;
+import com.example.demoadmin.global.response.CustomException;
+import com.example.demoadmin.global.response.ErrorCode;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
@@ -17,6 +19,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import lombok.AccessLevel;
@@ -28,7 +31,13 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Getter
-@Table(name = "festivals")
+@Table(
+        name = "festivals",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_festivals_series_year",
+                columnNames = {"series_id", "festival_year"}
+        )
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Festival extends BaseTimeEntity {
 
@@ -37,6 +46,13 @@ public class Festival extends BaseTimeEntity {
     private Long id;
 
     // TODO(festival): 현재 축제 저장 필드는 임시 기준이며 추후 DB 설계서와 API 정보를 확인한 뒤 필드/제약/응답을 수정한다.
+    // TODO(festival): 운영 DB 반영 전 기존 festivals 데이터의 series_id와 festival_year 백필 마이그레이션을 작성한다.
+    @Column(name = "series_id", nullable = false)
+    private Long seriesId;
+
+    @Column(name = "festival_year", nullable = false)
+    private int year;
+
     @Embedded
     @AttributeOverride(
             name = "value",
@@ -89,12 +105,16 @@ public class Festival extends BaseTimeEntity {
     private FestivalStatus status;
 
     private Festival(
+            Long seriesId,
+            int year,
             FestivalName name,
             FestivalDescription description,
             FestivalAddress address,
             FestivalPeriod period,
             FestivalOperationTime operationTime
     ) {
+        this.seriesId = seriesId;
+        this.year = year;
         this.name = name;
         this.description = description;
         this.address = address;
@@ -107,19 +127,30 @@ public class Festival extends BaseTimeEntity {
      * 임시 기준의 축제 기본 정보를 생성한다.
      */
     public static Festival create(
+            Long seriesId,
             FestivalName name,
             FestivalDescription description,
             FestivalAddress address,
             FestivalPeriod period,
             FestivalOperationTime operationTime
     ) {
+        validateSeriesId(seriesId);
+
         return new Festival(
+                seriesId,
+                period.getStartDate().getYear(),
                 name,
                 description,
                 address,
                 period,
                 operationTime
         );
+    }
+
+    private static void validateSeriesId(Long seriesId) {
+        if (seriesId == null) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
+        }
     }
 
     /**
@@ -132,11 +163,19 @@ public class Festival extends BaseTimeEntity {
             FestivalPeriod period,
             FestivalOperationTime operationTime
     ) {
+        validateSameYear(period);
+
         this.name = name;
         this.description = description;
         this.address = address;
         this.period = period;
         this.operationTime = operationTime;
+    }
+
+    private void validateSameYear(FestivalPeriod period) {
+        if (year != period.getStartDate().getYear()) {
+            throw new CustomException(ErrorCode.FESTIVAL_YEAR_CANNOT_BE_CHANGED);
+        }
     }
 
     public String getNameValue() {
