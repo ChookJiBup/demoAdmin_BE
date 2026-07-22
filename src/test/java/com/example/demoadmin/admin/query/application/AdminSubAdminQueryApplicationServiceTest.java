@@ -64,12 +64,17 @@ class AdminSubAdminQueryApplicationServiceTest {
             AdminSubAdminView view = subAdminView();
             given(adminAccountService.getById(principal.adminId())).willReturn(owner);
             given(festivalService.getByPublicId(festival.getPublicId())).willReturn(festival);
-            given(subAdminQueryService.findAllByFestivalId(festival.getId()))
+            given(subAdminQueryService.searchInvitedSubAdmins(
+                    festival.getId(),
+                    owner.getId(),
+                    "김"
+            ))
                     .willReturn(List.of(view));
 
             // when
             List<AdminSubAdminView> result = applicationService.getSubAdmins(
                     festival.getPublicId(),
+                    "김",
                     principal
             );
 
@@ -86,7 +91,7 @@ class AdminSubAdminQueryApplicationServiceTest {
 
             // when & then
             assertThatThrownBy(() ->
-                    applicationService.getSubAdmins(festivalId, principal)
+                    applicationService.getSubAdmins(festivalId, null, principal)
             )
                     .isInstanceOf(CustomException.class)
                     .hasMessage(ErrorCode.UNAUTHORIZED.getMessage());
@@ -104,7 +109,7 @@ class AdminSubAdminQueryApplicationServiceTest {
 
             // when & then
             assertThatThrownBy(() ->
-                    applicationService.getSubAdmins(festival.getPublicId(), principal)
+                    applicationService.getSubAdmins(festival.getPublicId(), null, principal)
             )
                     .isInstanceOf(CustomException.class)
                     .hasMessage(ErrorCode.FORBIDDEN.getMessage());
@@ -122,7 +127,7 @@ class AdminSubAdminQueryApplicationServiceTest {
 
             // when & then
             assertThatThrownBy(() ->
-                    applicationService.getSubAdmins(festival.getPublicId(), principal)
+                    applicationService.getSubAdmins(festival.getPublicId(), null, principal)
             )
                     .isInstanceOf(CustomException.class)
                     .hasMessage(ErrorCode.FORBIDDEN.getMessage());
@@ -144,8 +149,9 @@ class AdminSubAdminQueryApplicationServiceTest {
             AdminSubAdminView view = subAdminView(subAdminId);
             given(adminAccountService.getById(principal.adminId())).willReturn(owner);
             given(festivalService.getByPublicId(festival.getPublicId())).willReturn(festival);
-            given(subAdminQueryService.getByFestivalIdAndPublicId(
+            given(subAdminQueryService.getInvitedSubAdmin(
                     festival.getId(),
+                    owner.getId(),
                     subAdminId
             )).willReturn(view);
 

@@ -31,13 +31,18 @@ public class AdminSubAdminQueryApplicationService {
      */
     public List<AdminSubAdminView> getSubAdmins(
             UUID festivalId,
+            String keyword,
             AdminPrincipal principal
     ) {
         AdminAccount adminAccount = findAuthenticatedAdmin(principal);
         Festival festival = festivalService.getByPublicId(festivalId);
         validateOwnerAccess(adminAccount, festival);
 
-        return subAdminQueryService.findAllByFestivalId(festival.getId());
+        return subAdminQueryService.searchInvitedSubAdmins(
+                festival.getId(),
+                adminAccount.getId(),
+                keyword
+        );
     }
 
     /**
@@ -52,8 +57,9 @@ public class AdminSubAdminQueryApplicationService {
         Festival festival = festivalService.getByPublicId(festivalId);
         validateOwnerAccess(adminAccount, festival);
 
-        return subAdminQueryService.getByFestivalIdAndPublicId(
+        return subAdminQueryService.getInvitedSubAdmin(
                 festival.getId(),
+                adminAccount.getId(),
                 adminId
         );
     }

@@ -27,27 +27,34 @@ class AdminSubAdminQueryRepositoryTest {
     private AdminSubAdminQueryJpaRepository jpaRepository;
 
     @Nested
-    @DisplayName("findAllByFestivalId")
-    class FindAllByFestivalId {
+    @DisplayName("searchInvitedSubAdmins")
+    class SearchInvitedSubAdmins {
 
         @Test
-        @DisplayName("같은 축제의 활성 서브관리자만 조회한다")
-        void success_FindAllByFestivalId_ActiveSubAdmins() {
+        @DisplayName("같은 축제에서 해당 제1 관리자가 초대한 활성 서브관리자만 조회한다")
+        void success_SearchInvitedSubAdmins_ActiveSubAdmins() {
             // given
-            AdminAccount first = subAdmin("sub1@mapo.go.kr", 1L);
-            AdminAccount second = subAdmin("sub2@mapo.go.kr", 1L);
-            AdminAccount otherFestival = subAdmin("other@mapo.go.kr", 2L);
+            Long invitedByAdminId = 1L;
+            AdminAccount first = subAdmin("sub1@mapo.go.kr", 1L, invitedByAdminId);
+            AdminAccount second = subAdmin("sub2@mapo.go.kr", 1L, invitedByAdminId);
+            AdminAccount otherFestival = subAdmin("other@mapo.go.kr", 2L, invitedByAdminId);
+            AdminAccount otherInviter = subAdmin("other-inviter@mapo.go.kr", 1L, 2L);
             AdminAccount owner = owner("owner@mapo.go.kr", 1L);
-            AdminAccount deleted = subAdmin("deleted@mapo.go.kr", 1L);
+            AdminAccount deleted = subAdmin("deleted@mapo.go.kr", 1L, invitedByAdminId);
             deleted.withdraw();
             jpaRepository.save(first);
             jpaRepository.save(second);
             jpaRepository.save(otherFestival);
+            jpaRepository.save(otherInviter);
             jpaRepository.save(owner);
             jpaRepository.save(deleted);
 
             // when
-            var result = queryRepository.findAllByFestivalId(1L);
+            var result = queryRepository.searchInvitedSubAdmins(
+                    1L,
+                    invitedByAdminId,
+                    null
+            );
 
             // then
             assertThat(result)
@@ -56,13 +63,51 @@ class AdminSubAdminQueryRepositoryTest {
         }
 
         @Test
-        @DisplayName("서브관리자가 없으면 빈 목록을 반환한다")
-        void success_FindAllByFestivalId_EmptyBoundary() {
+        @DisplayName("검색어가 있으면 이메일, 이름, 조직으로 필터링한다")
+        void success_SearchInvitedSubAdmins_ByKeyword() {
             // given
-            Long festivalId = 1L;
+            Long invitedByAdminId = 1L;
+            jpaRepository.save(subAdmin(
+                    "sub1@mapo.go.kr",
+                    "김검색",
+                    "마포구청 소속",
+                    1L,
+                    invitedByAdminId
+            ));
+            jpaRepository.save(subAdmin(
+                    "sub2@mapo.go.kr",
+                    "이관리",
+                    "서울시 소속",
+                    1L,
+                    invitedByAdminId
+            ));
 
             // when
-            var result = queryRepository.findAllByFestivalId(festivalId);
+            var result = queryRepository.searchInvitedSubAdmins(
+                    1L,
+                    invitedByAdminId,
+                    "검색"
+            );
+
+            // then
+            assertThat(result)
+                    .extracting(AdminSubAdminView::email)
+                    .containsExactly("sub1@mapo.go.kr");
+        }
+
+        @Test
+        @DisplayName("서브관리자가 없으면 빈 목록을 반환한다")
+        void success_SearchInvitedSubAdmins_EmptyBoundary() {
+            // given
+            Long festivalId = 1L;
+            Long invitedByAdminId = 1L;
+
+            // when
+            var result = queryRepository.searchInvitedSubAdmins(
+                    festivalId,
+                    invitedByAdminId,
+                    null
+            );
 
             // then
             assertThat(result).isEmpty();
@@ -70,21 +115,24 @@ class AdminSubAdminQueryRepositoryTest {
     }
 
     @Nested
-    @DisplayName("findByFestivalIdAndPublicId")
-    class FindByFestivalIdAndPublicId {
+    @DisplayName("findInvitedSubAdmin")
+    class FindInvitedSubAdmin {
 
         @Test
-        @DisplayName("같은 축제의 활성 서브관리자를 UUID로 조회한다")
-        void success_FindByFestivalIdAndPublicId() {
+        @DisplayName("같은 축제에서 해당 제1 관리자가 초대한 활성 서브관리자를 UUID로 조회한다")
+        void success_FindInvitedSubAdmin() {
             // given
+            Long invitedByAdminId = 1L;
             AdminAccount saved = jpaRepository.save(subAdmin(
                     "sub@mapo.go.kr",
-                    1L
+                    1L,
+                    invitedByAdminId
             ));
 
             // when
-            var result = queryRepository.findByFestivalIdAndPublicId(
+            var result = queryRepository.findInvitedSubAdmin(
                     1L,
+                    invitedByAdminId,
                     saved.getPublicId()
             );
 
@@ -98,16 +146,19 @@ class AdminSubAdminQueryRepositoryTest {
 
         @Test
         @DisplayName("다른 축제의 서브관리자는 조회 결과가 없다")
-        void success_FindByFestivalIdAndPublicId_DifferentFestival() {
+        void success_FindInvitedSubAdmin_DifferentFestival() {
             // given
+            Long invitedByAdminId = 1L;
             AdminAccount saved = jpaRepository.save(subAdmin(
                     "sub@mapo.go.kr",
-                    2L
+                    2L,
+                    invitedByAdminId
             ));
 
             // when
-            var result = queryRepository.findByFestivalIdAndPublicId(
+            var result = queryRepository.findInvitedSubAdmin(
                     1L,
+                    invitedByAdminId,
                     saved.getPublicId()
             );
 
@@ -117,15 +168,17 @@ class AdminSubAdminQueryRepositoryTest {
 
         @Test
         @DisplayName("탈퇴한 서브관리자는 조회 결과가 없다")
-        void success_FindByFestivalIdAndPublicId_DeletedSubAdmin() {
+        void success_FindInvitedSubAdmin_DeletedSubAdmin() {
             // given
-            AdminAccount saved = subAdmin("sub@mapo.go.kr", 1L);
+            Long invitedByAdminId = 1L;
+            AdminAccount saved = subAdmin("sub@mapo.go.kr", 1L, invitedByAdminId);
             saved.withdraw();
             jpaRepository.save(saved);
 
             // when
-            var result = queryRepository.findByFestivalIdAndPublicId(
+            var result = queryRepository.findInvitedSubAdmin(
                     1L,
+                    invitedByAdminId,
                     saved.getPublicId()
             );
 
@@ -144,14 +197,34 @@ class AdminSubAdminQueryRepositoryTest {
         );
     }
 
-    private AdminAccount subAdmin(String email, Long festivalId) {
+    private AdminAccount subAdmin(
+            String email,
+            Long festivalId,
+            Long invitedByAdminId
+    ) {
+        return subAdmin(
+                email,
+                "김관리",
+                "마포구청 소속",
+                festivalId,
+                invitedByAdminId
+        );
+    }
+
+    private AdminAccount subAdmin(
+            String email,
+            String name,
+            String organization,
+            Long festivalId,
+            Long invitedByAdminId
+    ) {
         return AdminAccount.createSubAdmin(
                 AdminEmail.of(email),
-                AdminName.of("김관리"),
-                AdminOrganization.of("마포구청 소속"),
+                AdminName.of(name),
+                AdminOrganization.of(organization),
                 festivalId,
                 AdminPasswordHash.of("encoded-password"),
-                1L
+                invitedByAdminId
         );
     }
 }

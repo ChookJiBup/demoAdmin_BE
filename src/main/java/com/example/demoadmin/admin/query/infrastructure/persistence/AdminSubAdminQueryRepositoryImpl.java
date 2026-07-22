@@ -18,21 +18,29 @@ public class AdminSubAdminQueryRepositoryImpl
     private final AdminSubAdminQueryJpaRepository jpaRepository;
 
     @Override
-    public List<AdminSubAdminView> findAllByFestivalId(Long festivalId) {
-        return jpaRepository.findAllByFestivalIdAndRoleAndStatus(
+    public List<AdminSubAdminView> searchInvitedSubAdmins(
+            Long festivalId,
+            Long invitedByAdminId,
+            String keyword
+    ) {
+        return jpaRepository.searchInvitedSubAdmins(
                 festivalId,
+                invitedByAdminId,
                 AdminRole.SUB_ADMIN,
-                AdminStatus.ACTIVE
+                AdminStatus.ACTIVE,
+                keyword
         );
     }
 
     @Override
-    public Optional<AdminSubAdminView> findByFestivalIdAndPublicId(
+    public Optional<AdminSubAdminView> findInvitedSubAdmin(
             Long festivalId,
+            Long invitedByAdminId,
             UUID publicId
     ) {
-        return jpaRepository.findByFestivalIdAndPublicIdAndRoleAndStatus(
+        return jpaRepository.findInvitedSubAdmin(
                 festivalId,
+                invitedByAdminId,
                 publicId,
                 AdminRole.SUB_ADMIN,
                 AdminStatus.ACTIVE

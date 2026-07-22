@@ -11,15 +11,20 @@ import java.util.UUID;
 public interface AdminSubAdminQueryRepository {
 
     /**
-     * 지정한 축제의 활성 서브관리자 목록을 조회한다.
+     * 지정한 축제에서 특정 제1 관리자가 초대한 활성 서브관리자 목록을 조회한다.
      */
-    List<AdminSubAdminView> findAllByFestivalId(Long festivalId);
+    List<AdminSubAdminView> searchInvitedSubAdmins(
+            Long festivalId,
+            Long invitedByAdminId,
+            String keyword
+    );
 
     /**
-     * 지정한 축제의 활성 서브관리자를 외부 UUID로 조회한다.
+     * 지정한 축제에서 특정 제1 관리자가 초대한 활성 서브관리자를 외부 UUID로 조회한다.
      */
-    Optional<AdminSubAdminView> findByFestivalIdAndPublicId(
+    Optional<AdminSubAdminView> findInvitedSubAdmin(
             Long festivalId,
+            Long invitedByAdminId,
             UUID publicId
     );
 }

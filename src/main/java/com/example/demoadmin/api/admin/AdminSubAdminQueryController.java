@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,11 +37,12 @@ public class AdminSubAdminQueryController {
     @GetMapping
     public ApiResponse<List<AdminSubAdminResponse>> getSubAdmins(
             @PathVariable UUID festivalId,
+            @RequestParam(required = false) String keyword,
             @AuthenticationPrincipal AdminPrincipal principal
     ) {
         return ApiResponse.success(
                 SuccessCode.ADMIN_SUB_ADMIN_READ_SUCCESS,
-                subAdminQueryService.getSubAdmins(festivalId, principal)
+                subAdminQueryService.getSubAdmins(festivalId, keyword, principal)
                         .stream()
                         .map(AdminSubAdminResponse::from)
                         .toList()

@@ -51,12 +51,21 @@ class AdminSubAdminQueryApplicationServiceIntegrationTest {
             // given
             Festival festival = festivalService.save(festival());
             AdminAccount owner = adminAccountService.save(owner(festival.getId()));
-            adminAccountService.save(subAdmin("sub1@mapo.go.kr", festival.getId()));
-            adminAccountService.save(subAdmin("sub2@mapo.go.kr", festival.getId()));
+            adminAccountService.save(subAdmin(
+                    "sub1@mapo.go.kr",
+                    festival.getId(),
+                    owner.getId()
+            ));
+            adminAccountService.save(subAdmin(
+                    "sub2@mapo.go.kr",
+                    festival.getId(),
+                    owner.getId()
+            ));
 
             // when
             List<AdminSubAdminView> result = applicationService.getSubAdmins(
                     festival.getPublicId(),
+                    null,
                     principal(owner)
             );
 
@@ -79,7 +88,8 @@ class AdminSubAdminQueryApplicationServiceIntegrationTest {
             AdminAccount owner = adminAccountService.save(owner(festival.getId()));
             AdminAccount subAdmin = adminAccountService.save(subAdmin(
                     "sub@mapo.go.kr",
-                    festival.getId()
+                    festival.getId(),
+                    owner.getId()
             ));
 
             // when
@@ -114,14 +124,18 @@ class AdminSubAdminQueryApplicationServiceIntegrationTest {
         );
     }
 
-    private AdminAccount subAdmin(String email, Long festivalId) {
+    private AdminAccount subAdmin(
+            String email,
+            Long festivalId,
+            Long invitedByAdminId
+    ) {
         return AdminAccount.createSubAdmin(
                 AdminEmail.of(email),
                 AdminName.of("김관리"),
                 AdminOrganization.of("마포구청 소속"),
                 festivalId,
                 AdminPasswordHash.of("encoded-password"),
-                1L
+                invitedByAdminId
         );
     }
 
