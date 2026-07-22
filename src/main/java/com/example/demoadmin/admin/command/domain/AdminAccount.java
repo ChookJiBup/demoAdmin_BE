@@ -185,6 +185,13 @@ public class AdminAccount extends BaseTimeEntity {
     }
 
     /**
+     * 탈퇴 처리된 계정인지 확인한다.
+     */
+    public boolean isDeleted() {
+        return status == AdminStatus.DELETED;
+    }
+
+    /**
      * 서브관리자 초대 권한을 가진 계정인지 확인한다.
      */
     public boolean canInviteSubAdmin() {
@@ -229,6 +236,17 @@ public class AdminAccount extends BaseTimeEntity {
 
         this.festivalId = festivalId;
         this.role = AdminRole.FESTIVAL_OWNER;
+    }
+
+    /**
+     * 관리자 계정을 탈퇴 상태로 변경한다.
+     */
+    public void withdraw() {
+        if (isDeleted()) {
+            throw new CustomException(ErrorCode.AUTH_ADMIN_ALREADY_WITHDRAWN);
+        }
+
+        status = AdminStatus.DELETED;
     }
 
     public String getEmailValue() {

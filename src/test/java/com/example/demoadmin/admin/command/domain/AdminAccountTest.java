@@ -62,6 +62,39 @@ class AdminAccountTest {
         }
     }
 
+    @Nested
+    @DisplayName("withdraw")
+    class Withdraw {
+
+        @Test
+        @DisplayName("관리자 계정을 탈퇴 상태로 변경한다")
+        void success_Withdraw() {
+            // given
+            AdminAccount adminAccount = adminAccount();
+
+            // when
+            adminAccount.withdraw();
+
+            // then
+            assertThat(adminAccount.getStatus()).isEqualTo(AdminStatus.DELETED);
+            assertThat(adminAccount.isDeleted()).isTrue();
+            assertThat(adminAccount.isActive()).isFalse();
+        }
+
+        @Test
+        @DisplayName("이미 탈퇴한 관리자 계정은 다시 탈퇴 처리할 수 없다")
+        void fail_Withdraw_CustomException() {
+            // given
+            AdminAccount adminAccount = adminAccount();
+            adminAccount.withdraw();
+
+            // when & then
+            assertThatThrownBy(adminAccount::withdraw)
+                    .isInstanceOf(CustomException.class)
+                    .hasMessage(ErrorCode.AUTH_ADMIN_ALREADY_WITHDRAWN.getMessage());
+        }
+    }
+
     private AdminAccount adminAccount() {
         return AdminAccount.createAdmin(
                 AdminEmail.of("owner@mapo.go.kr"),
