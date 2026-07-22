@@ -19,14 +19,11 @@ public class AdminSubAdminQueryRepositoryImpl
 
     @Override
     public List<AdminSubAdminView> findAllByFestivalId(Long festivalId) {
-        return jpaRepository.findAllByFestivalIdAndRoleAndStatusOrderByIdAsc(
-                        festivalId,
-                        AdminRole.SUB_ADMIN,
-                        AdminStatus.ACTIVE
-                )
-                .stream()
-                .map(AdminSubAdminView::from)
-                .toList();
+        return jpaRepository.findAllByFestivalIdAndRoleAndStatus(
+                festivalId,
+                AdminRole.SUB_ADMIN,
+                AdminStatus.ACTIVE
+        );
     }
 
     @Override
@@ -35,11 +32,10 @@ public class AdminSubAdminQueryRepositoryImpl
             UUID publicId
     ) {
         return jpaRepository.findByFestivalIdAndPublicIdAndRoleAndStatus(
-                        festivalId,
-                        publicId,
-                        AdminRole.SUB_ADMIN,
-                        AdminStatus.ACTIVE
-                )
-                .map(AdminSubAdminView::from);
+                festivalId,
+                publicId,
+                AdminRole.SUB_ADMIN,
+                AdminStatus.ACTIVE
+        );
     }
 }
