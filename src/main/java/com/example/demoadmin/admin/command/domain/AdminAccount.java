@@ -181,7 +181,7 @@ public class AdminAccount extends BaseTimeEntity {
      * 로그인과 API 사용이 가능한 활성 계정인지 확인한다.
      */
     public boolean isActive() {
-        return status == AdminStatus.ACTIVE;
+        return status.canAuthenticate();
     }
 
     /**

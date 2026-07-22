@@ -86,5 +86,18 @@ class AdminAccountTest {
             // then
             assertThat(adminAccount.getPublicId()).isNotNull();
         }
+
+        @Test
+        @DisplayName("관리자 계정은 활성 상태로 생성된다")
+        void success_CreateAdmin_ActiveStatus() {
+            // given
+
+            // when
+            AdminAccount adminAccount = adminAccount();
+
+            // then
+            assertThat(adminAccount.getStatus()).isEqualTo(AdminStatus.ACTIVE);
+            assertThat(adminAccount.isActive()).isTrue();
+        }
     }
 }

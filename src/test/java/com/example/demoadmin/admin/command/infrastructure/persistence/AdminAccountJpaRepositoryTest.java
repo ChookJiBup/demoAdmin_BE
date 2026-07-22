@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.demoadmin.admin.command.domain.AdminAccount;
 import com.example.demoadmin.admin.command.domain.AdminRole;
+import com.example.demoadmin.admin.command.domain.AdminStatus;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
@@ -19,6 +20,27 @@ class AdminAccountJpaRepositoryTest {
 
     @Autowired
     private AdminAccountJpaRepository adminAccountJpaRepository;
+
+    @Nested
+    @DisplayName("save")
+    class Save {
+
+        @Test
+        @DisplayName("관리자 계정 상태를 DB에 저장한다")
+        void success_Save_Status() {
+            // given
+            AdminAccount adminAccount = festivalOwner(
+                    "owner@mapo.go.kr",
+                    1L
+            );
+
+            // when
+            AdminAccount saved = adminAccountJpaRepository.save(adminAccount);
+
+            // then
+            assertThat(saved.getStatus()).isEqualTo(AdminStatus.ACTIVE);
+        }
+    }
 
     @Nested
     @DisplayName("findByPublicId")

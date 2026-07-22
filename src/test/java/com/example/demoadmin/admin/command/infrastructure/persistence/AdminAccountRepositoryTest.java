@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
 import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.AdminRole;
+import com.example.demoadmin.admin.command.domain.AdminStatus;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
@@ -43,6 +44,7 @@ class AdminAccountRepositoryTest {
             assertThat(saved.getId()).isNotNull();
             assertThat(saved.getPublicId()).isNotNull();
             assertThat(saved.getEmailValue()).isEqualTo("owner@mapo.go.kr");
+            assertThat(saved.getStatus()).isEqualTo(AdminStatus.ACTIVE);
         }
     }
 
