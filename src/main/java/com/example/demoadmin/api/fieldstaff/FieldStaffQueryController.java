@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,11 +37,16 @@ public class FieldStaffQueryController {
     @GetMapping
     public ApiResponse<List<FieldStaffResponse>> getFieldStaff(
             @PathVariable UUID festivalId,
+            @RequestParam(required = false) String keyword,
             @AuthenticationPrincipal AdminPrincipal principal
     ) {
         return ApiResponse.success(
                 SuccessCode.FIELD_STAFF_READ_SUCCESS,
-                fieldStaffQueryService.getFieldStaff(festivalId, principal)
+                fieldStaffQueryService.searchFieldStaff(
+                                festivalId,
+                                keyword,
+                                principal
+                        )
                         .stream()
                         .map(FieldStaffResponse::from)
                         .toList()

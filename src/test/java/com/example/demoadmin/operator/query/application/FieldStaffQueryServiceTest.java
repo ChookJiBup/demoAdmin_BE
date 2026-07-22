@@ -31,37 +31,37 @@ class FieldStaffQueryServiceTest {
     private FieldStaffQueryRepository queryRepository;
 
     @Nested
-    @DisplayName("findAllByFestivalId")
-    class FindAllByFestivalId {
+    @DisplayName("searchByFestivalId")
+    class SearchByFestivalId {
 
         @Test
-        @DisplayName("축제 ID로 현장 스태프 목록을 조회한다")
-        void success_FindAllByFestivalId() {
+        @DisplayName("축제 ID와 검색어로 현장 스태프 목록을 검색한다")
+        void success_SearchByFestivalId() {
             // given
             Long festivalId = 1L;
             FieldStaffView view = fieldStaffView();
-            given(queryRepository.findAllByFestivalId(festivalId))
+            given(queryRepository.searchByFestivalId(festivalId, "staff"))
                     .willReturn(List.of(view));
 
             // when
             List<FieldStaffView> result =
-                    queryService.findAllByFestivalId(festivalId);
+                    queryService.searchByFestivalId(festivalId, " STAFF ");
 
             // then
             assertThat(result).containsExactly(view);
         }
 
         @Test
-        @DisplayName("현장 스태프가 없으면 빈 목록을 반환한다")
-        void success_FindAllByFestivalId_EmptyBoundary() {
+        @DisplayName("빈 검색어는 전체 조회로 처리한다")
+        void success_SearchByFestivalId_BlankKeywordBoundary() {
             // given
             Long festivalId = 1L;
-            given(queryRepository.findAllByFestivalId(festivalId))
+            given(queryRepository.searchByFestivalId(festivalId, null))
                     .willReturn(List.of());
 
             // when
             List<FieldStaffView> result =
-                    queryService.findAllByFestivalId(festivalId);
+                    queryService.searchByFestivalId(festivalId, " ");
 
             // then
             assertThat(result).isEmpty();

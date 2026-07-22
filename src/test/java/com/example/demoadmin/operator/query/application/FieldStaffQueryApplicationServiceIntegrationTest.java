@@ -65,8 +65,9 @@ class FieldStaffQueryApplicationServiceIntegrationTest {
             fieldStaffAccountService.save(fieldStaffAccount("staff02", festival.getId()));
 
             // when
-            List<FieldStaffView> result = applicationService.getFieldStaff(
+            List<FieldStaffView> result = applicationService.searchFieldStaff(
                     festival.getPublicId(),
+                    null,
                     principal(owner)
             );
 
@@ -74,6 +75,28 @@ class FieldStaffQueryApplicationServiceIntegrationTest {
             assertThat(result)
                     .extracting(FieldStaffView::loginId)
                     .containsExactly("staff01", "staff02");
+        }
+
+        @Test
+        @DisplayName("관리자가 검색어로 담당 축제의 현장 스태프 목록을 필터링한다")
+        void success_GetFieldStaff_ByKeyword() {
+            // given
+            Festival festival = festivalService.save(festival());
+            AdminAccount owner = adminAccountService.save(owner(festival.getId()));
+            fieldStaffAccountService.save(fieldStaffAccount("staff01", "김검색", festival.getId()));
+            fieldStaffAccountService.save(fieldStaffAccount("staff02", "이관리", festival.getId()));
+
+            // when
+            List<FieldStaffView> result = applicationService.searchFieldStaff(
+                    festival.getPublicId(),
+                    "검색",
+                    principal(owner)
+            );
+
+            // then
+            assertThat(result)
+                    .extracting(FieldStaffView::loginId)
+                    .containsExactly("staff01");
         }
     }
 
@@ -124,10 +147,18 @@ class FieldStaffQueryApplicationServiceIntegrationTest {
     }
 
     private FieldStaffAccount fieldStaffAccount(String loginId, Long festivalId) {
+        return fieldStaffAccount(loginId, "김스태프", festivalId);
+    }
+
+    private FieldStaffAccount fieldStaffAccount(
+            String loginId,
+            String name,
+            Long festivalId
+    ) {
         return FieldStaffAccount.create(
                 festivalId,
                 FieldStaffLoginId.of(loginId),
-                FieldStaffName.of("김스태프"),
+                FieldStaffName.of(name),
                 FieldStaffPhoneNumber.of("010-1234-5678"),
                 FieldStaffPasswordHash.of("encoded-password"),
                 LocalDateTime.of(2026, 10, 9, 0, 0),

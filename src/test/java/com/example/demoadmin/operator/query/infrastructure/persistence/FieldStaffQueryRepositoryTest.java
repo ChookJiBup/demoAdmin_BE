@@ -28,12 +28,12 @@ class FieldStaffQueryRepositoryTest {
     private FieldStaffQueryJpaRepository jpaRepository;
 
     @Nested
-    @DisplayName("findAllByFestivalId")
-    class FindAllByFestivalId {
+    @DisplayName("searchByFestivalId")
+    class SearchByFestivalId {
 
         @Test
         @DisplayName("같은 축제의 활성 현장 스태프만 조회한다")
-        void success_FindAllByFestivalId_ActiveFieldStaff() {
+        void success_SearchByFestivalId_ActiveFieldStaff() {
             // given
             FieldStaffAccount first = fieldStaffAccount("staff01", 1L);
             FieldStaffAccount second = fieldStaffAccount("staff02", 1L);
@@ -46,7 +46,7 @@ class FieldStaffQueryRepositoryTest {
             jpaRepository.save(deleted);
 
             // when
-            var result = queryRepository.findAllByFestivalId(1L);
+            var result = queryRepository.searchByFestivalId(1L, null);
 
             // then
             assertThat(result)
@@ -55,13 +55,39 @@ class FieldStaffQueryRepositoryTest {
         }
 
         @Test
+        @DisplayName("검색어가 있으면 로그인 ID, 이름, 전화번호로 필터링한다")
+        void success_SearchByFestivalId_ByKeyword() {
+            // given
+            jpaRepository.save(fieldStaffAccount(
+                    "staff01",
+                    "김검색",
+                    "010-1111-2222",
+                    1L
+            ));
+            jpaRepository.save(fieldStaffAccount(
+                    "staff02",
+                    "이관리",
+                    "010-3333-4444",
+                    1L
+            ));
+
+            // when
+            var result = queryRepository.searchByFestivalId(1L, "검색");
+
+            // then
+            assertThat(result)
+                    .extracting(FieldStaffView::loginId)
+                    .containsExactly("staff01");
+        }
+
+        @Test
         @DisplayName("현장 스태프가 없으면 빈 목록을 반환한다")
-        void success_FindAllByFestivalId_EmptyBoundary() {
+        void success_SearchByFestivalId_EmptyBoundary() {
             // given
             Long festivalId = 1L;
 
             // when
-            var result = queryRepository.findAllByFestivalId(festivalId);
+            var result = queryRepository.searchByFestivalId(festivalId, null);
 
             // then
             assertThat(result).isEmpty();
@@ -134,11 +160,25 @@ class FieldStaffQueryRepositoryTest {
     }
 
     private FieldStaffAccount fieldStaffAccount(String loginId, Long festivalId) {
+        return fieldStaffAccount(
+                loginId,
+                "김스태프",
+                "010-1234-5678",
+                festivalId
+        );
+    }
+
+    private FieldStaffAccount fieldStaffAccount(
+            String loginId,
+            String name,
+            String phoneNumber,
+            Long festivalId
+    ) {
         return FieldStaffAccount.create(
                 festivalId,
                 FieldStaffLoginId.of(loginId),
-                FieldStaffName.of("김스태프"),
-                FieldStaffPhoneNumber.of("010-1234-5678"),
+                FieldStaffName.of(name),
+                FieldStaffPhoneNumber.of(phoneNumber),
                 FieldStaffPasswordHash.of("encoded-password"),
                 LocalDateTime.of(2026, 10, 9, 0, 0),
                 LocalDateTime.of(2026, 10, 18, 23, 59)

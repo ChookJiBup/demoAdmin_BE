@@ -26,11 +26,18 @@ interface FieldStaffQueryJpaRepository
             from FieldStaffAccount f
             where f.festivalId = :festivalId
               and f.status = :status
+              and (
+                  :keyword is null
+                  or lower(f.loginId.value) like concat('%', :keyword, '%')
+                  or lower(f.name.value) like concat('%', :keyword, '%')
+                  or lower(f.phoneNumber.value) like concat('%', :keyword, '%')
+              )
             order by f.id asc
             """)
-    List<FieldStaffView> findAllByFestivalIdAndStatus(
+    List<FieldStaffView> searchByFestivalIdAndStatus(
             @Param("festivalId") Long festivalId,
-            @Param("status") FieldStaffStatus status
+            @Param("status") FieldStaffStatus status,
+            @Param("keyword") String keyword
     );
 
     @Query("""

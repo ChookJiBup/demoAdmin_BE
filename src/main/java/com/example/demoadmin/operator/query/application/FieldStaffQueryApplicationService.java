@@ -29,15 +29,19 @@ public class FieldStaffQueryApplicationService {
     /**
      * 1관리자 또는 2관리자가 담당 축제의 현장 스태프 목록을 조회한다.
      */
-    public List<FieldStaffView> getFieldStaff(
+    public List<FieldStaffView> searchFieldStaff(
             UUID festivalId,
+            String keyword,
             AdminPrincipal principal
     ) {
         AdminAccount adminAccount = findAuthenticatedAdmin(principal);
         Festival festival = festivalService.getByPublicId(festivalId);
         validateManagePermission(adminAccount, festival);
 
-        return fieldStaffQueryService.findAllByFestivalId(festival.getId());
+        return fieldStaffQueryService.searchByFestivalId(
+                festival.getId(),
+                keyword
+        );
     }
 
     /**

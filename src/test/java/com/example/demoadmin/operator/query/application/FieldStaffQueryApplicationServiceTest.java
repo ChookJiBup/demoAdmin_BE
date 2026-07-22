@@ -67,12 +67,16 @@ class FieldStaffQueryApplicationServiceTest {
                     .willReturn(owner);
             given(festivalService.getByPublicId(festival.getPublicId()))
                     .willReturn(festival);
-            given(fieldStaffQueryService.findAllByFestivalId(festival.getId()))
+            given(fieldStaffQueryService.searchByFestivalId(
+                    festival.getId(),
+                    "staff"
+            ))
                     .willReturn(List.of(view));
 
             // when
-            List<FieldStaffView> result = applicationService.getFieldStaff(
+            List<FieldStaffView> result = applicationService.searchFieldStaff(
                     festival.getPublicId(),
+                    "staff",
                     principal
             );
 
@@ -92,12 +96,16 @@ class FieldStaffQueryApplicationServiceTest {
                     .willReturn(subAdmin);
             given(festivalService.getByPublicId(festival.getPublicId()))
                     .willReturn(festival);
-            given(fieldStaffQueryService.findAllByFestivalId(festival.getId()))
+            given(fieldStaffQueryService.searchByFestivalId(
+                    festival.getId(),
+                    null
+            ))
                     .willReturn(List.of(view));
 
             // when
-            List<FieldStaffView> result = applicationService.getFieldStaff(
+            List<FieldStaffView> result = applicationService.searchFieldStaff(
                     festival.getPublicId(),
+                    null,
                     principal
             );
 
@@ -114,7 +122,7 @@ class FieldStaffQueryApplicationServiceTest {
 
             // when & then
             assertThatThrownBy(() ->
-                    applicationService.getFieldStaff(festivalId, principal)
+                    applicationService.searchFieldStaff(festivalId, null, principal)
             )
                     .isInstanceOf(CustomException.class)
                     .hasMessage(ErrorCode.UNAUTHORIZED.getMessage());
@@ -134,8 +142,9 @@ class FieldStaffQueryApplicationServiceTest {
 
             // when & then
             assertThatThrownBy(() ->
-                    applicationService.getFieldStaff(
+                    applicationService.searchFieldStaff(
                             festival.getPublicId(),
+                            null,
                             principal
                     )
             )

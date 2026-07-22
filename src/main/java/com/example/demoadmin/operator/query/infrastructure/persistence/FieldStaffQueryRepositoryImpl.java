@@ -16,10 +16,14 @@ public class FieldStaffQueryRepositoryImpl implements FieldStaffQueryRepository 
     private final FieldStaffQueryJpaRepository jpaRepository;
 
     @Override
-    public List<FieldStaffView> findAllByFestivalId(Long festivalId) {
-        return jpaRepository.findAllByFestivalIdAndStatus(
+    public List<FieldStaffView> searchByFestivalId(
+            Long festivalId,
+            String keyword
+    ) {
+        return jpaRepository.searchByFestivalIdAndStatus(
                 festivalId,
-                FieldStaffStatus.ACTIVE
+                FieldStaffStatus.ACTIVE,
+                keyword
         );
     }
 

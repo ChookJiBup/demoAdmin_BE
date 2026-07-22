@@ -21,10 +21,16 @@ public class FieldStaffQueryService {
     private final FieldStaffQueryRepository queryRepository;
 
     /**
-     * 지정한 축제의 활성 현장 스태프 계정 목록을 조회한다.
+     * 지정한 축제의 활성 현장 스태프 계정 목록을 검색한다.
      */
-    public List<FieldStaffView> findAllByFestivalId(Long festivalId) {
-        return queryRepository.findAllByFestivalId(festivalId);
+    public List<FieldStaffView> searchByFestivalId(
+            Long festivalId,
+            String keyword
+    ) {
+        return queryRepository.searchByFestivalId(
+                festivalId,
+                normalizeKeyword(keyword)
+        );
     }
 
     /**
@@ -36,5 +42,13 @@ public class FieldStaffQueryService {
     ) {
         return queryRepository.findByFestivalIdAndPublicId(festivalId, publicId)
                 .orElseThrow(() -> new CustomException(ErrorCode.FIELD_STAFF_NOT_FOUND));
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+
+        return keyword.trim().toLowerCase();
     }
 }
