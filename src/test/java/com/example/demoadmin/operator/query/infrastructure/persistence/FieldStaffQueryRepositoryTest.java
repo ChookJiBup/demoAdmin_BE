@@ -28,12 +28,12 @@ class FieldStaffQueryRepositoryTest {
     private FieldStaffQueryJpaRepository jpaRepository;
 
     @Nested
-    @DisplayName("searchByFestivalId")
-    class SearchByFestivalId {
+    @DisplayName("findAllByFestivalId")
+    class FindAllByFestivalId {
 
         @Test
         @DisplayName("같은 축제의 활성 현장 스태프만 조회한다")
-        void success_SearchByFestivalId_ActiveFieldStaff() {
+        void success_FindAllByFestivalId_ActiveFieldStaff() {
             // given
             FieldStaffAccount first = fieldStaffAccount("staff01", 1L);
             FieldStaffAccount second = fieldStaffAccount("staff02", 1L);
@@ -46,7 +46,7 @@ class FieldStaffQueryRepositoryTest {
             jpaRepository.save(deleted);
 
             // when
-            var result = queryRepository.searchByFestivalId(1L, null);
+            var result = queryRepository.findAllByFestivalId(1L);
 
             // then
             assertThat(result)
@@ -54,40 +54,13 @@ class FieldStaffQueryRepositoryTest {
                     .containsExactly("staff01", "staff02");
         }
 
-        @Test
-        @DisplayName("검색어가 있으면 로그인 ID, 이름, 전화번호로 필터링한다")
-        void success_SearchByFestivalId_ByKeyword() {
-            // given
-            jpaRepository.save(fieldStaffAccount(
-                    "staff01",
-                    "김검색",
-                    "010-1111-2222",
-                    1L
-            ));
-            jpaRepository.save(fieldStaffAccount(
-                    "staff02",
-                    "이관리",
-                    "010-3333-4444",
-                    1L
-            ));
-
-            // when
-            var result = queryRepository.searchByFestivalId(1L, "검색");
-
-            // then
-            assertThat(result)
-                    .extracting(FieldStaffView::loginId)
-                    .containsExactly("staff01");
-        }
-
-        @Test
         @DisplayName("현장 스태프가 없으면 빈 목록을 반환한다")
-        void success_SearchByFestivalId_EmptyBoundary() {
+        void success_FindAllByFestivalId_EmptyBoundary() {
             // given
             Long festivalId = 1L;
 
             // when
-            var result = queryRepository.searchByFestivalId(festivalId, null);
+            var result = queryRepository.findAllByFestivalId(festivalId);
 
             // then
             assertThat(result).isEmpty();

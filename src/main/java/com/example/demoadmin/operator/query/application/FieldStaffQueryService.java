@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class FieldStaffQueryService {
 
     private final FieldStaffQueryRepository queryRepository;
+    private final FieldStaffSearchMatcher searchMatcher =
+            new FieldStaffSearchMatcher();
 
     /**
      * 지정한 축제의 활성 현장 스태프 계정 목록을 검색한다.
@@ -27,10 +29,11 @@ public class FieldStaffQueryService {
             Long festivalId,
             String keyword
     ) {
-        return queryRepository.searchByFestivalId(
-                festivalId,
-                normalizeKeyword(keyword)
-        );
+        String normalizedKeyword = normalizeKeyword(keyword);
+        return queryRepository.findAllByFestivalId(festivalId)
+                .stream()
+                .filter(view -> searchMatcher.matches(view, normalizedKeyword))
+                .toList();
     }
 
     /**

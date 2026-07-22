@@ -11,12 +11,9 @@ import java.util.UUID;
 public interface FieldStaffQueryRepository {
 
     /**
-     * 지정한 축제의 활성 현장 스태프 계정 목록을 검색한다.
+     * 지정한 축제의 활성 현장 스태프 계정 목록을 조회한다.
      */
-    List<FieldStaffView> searchByFestivalId(
-            Long festivalId,
-            String keyword
-    );
+    List<FieldStaffView> findAllByFestivalId(Long festivalId);
 
     /**
      * 지정한 축제의 활성 현장 스태프 계정을 외부 UUID로 조회한다.

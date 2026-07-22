@@ -16,6 +16,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
@@ -40,6 +41,16 @@ import lombok.NoArgsConstructor;
                 @UniqueConstraint(
                         name = "uk_field_staff_accounts_festival_login_id",
                         columnNames = {"festival_id", "login_id"}
+                )
+        },
+        indexes = {
+                @Index(
+                        name = "idx_field_staff_accounts_festival_status_id",
+                        columnList = "festival_id, status, id"
+                ),
+                @Index(
+                        name = "idx_field_staff_accounts_festival_public_status",
+                        columnList = "festival_id, public_id, status"
                 )
         }
 )

@@ -40,8 +40,8 @@ class FieldStaffQueryServiceTest {
             // given
             Long festivalId = 1L;
             FieldStaffView view = fieldStaffView();
-            given(queryRepository.searchByFestivalId(festivalId, "staff"))
-                    .willReturn(List.of(view));
+            given(queryRepository.findAllByFestivalId(festivalId))
+                    .willReturn(List.of(view, fieldStaffView("worker01", "이해준")));
 
             // when
             List<FieldStaffView> result =
@@ -56,7 +56,7 @@ class FieldStaffQueryServiceTest {
         void success_SearchByFestivalId_BlankKeywordBoundary() {
             // given
             Long festivalId = 1L;
-            given(queryRepository.searchByFestivalId(festivalId, null))
+            given(queryRepository.findAllByFestivalId(festivalId))
                     .willReturn(List.of());
 
             // when
@@ -65,6 +65,24 @@ class FieldStaffQueryServiceTest {
 
             // then
             assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("한글 입력 중간 상태로 이름을 검색한다")
+        void success_SearchByFestivalId_HangulComposingKeyword() {
+            // given
+            Long festivalId = 1L;
+            FieldStaffView leeHaeJun = fieldStaffView("staff01", "이해준");
+            FieldStaffView kimStaff = fieldStaffView("staff02", "김스태프");
+            given(queryRepository.findAllByFestivalId(festivalId))
+                    .willReturn(List.of(leeHaeJun, kimStaff));
+
+            // when
+            List<FieldStaffView> result =
+                    queryService.searchByFestivalId(festivalId, "잏");
+
+            // then
+            assertThat(result).containsExactly(leeHaeJun);
         }
     }
 
@@ -125,6 +143,18 @@ class FieldStaffQueryServiceTest {
                 staffId,
                 "staff01",
                 "김스태프",
+                "010-1234-5678",
+                LocalDateTime.of(2026, 10, 9, 0, 0),
+                LocalDateTime.of(2026, 10, 18, 23, 59),
+                FieldStaffStatus.ACTIVE
+        );
+    }
+
+    private FieldStaffView fieldStaffView(String loginId, String name) {
+        return new FieldStaffView(
+                UUID.randomUUID(),
+                loginId,
+                name,
                 "010-1234-5678",
                 LocalDateTime.of(2026, 10, 9, 0, 0),
                 LocalDateTime.of(2026, 10, 18, 23, 59),
