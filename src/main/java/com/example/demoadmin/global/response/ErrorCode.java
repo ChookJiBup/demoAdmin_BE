@@ -31,6 +31,7 @@ public enum ErrorCode {
     FESTIVAL_NOT_FOUND(40401, HttpStatus.NOT_FOUND, "축제를 찾을 수 없습니다."),
     FESTIVAL_SERIES_NOT_FOUND(40402, HttpStatus.NOT_FOUND, "축제 묶음을 찾을 수 없습니다."),
     FIELD_STAFF_NOT_FOUND(40403, HttpStatus.NOT_FOUND, "현장 스태프 계정을 찾을 수 없습니다."),
+    ADMIN_SUB_ADMIN_NOT_FOUND(40404, HttpStatus.NOT_FOUND, "서브관리자를 찾을 수 없습니다."),
     FESTIVAL_YEAR_ALREADY_EXISTS(40904, HttpStatus.CONFLICT, "해당 축제 묶음에는 이미 같은 연도 축제가 존재합니다."),
     FESTIVAL_YEAR_CANNOT_BE_CHANGED(40905, HttpStatus.CONFLICT, "축제 개최 연도는 수정할 수 없습니다."),
     FIELD_STAFF_LOGIN_ID_DUPLICATED(40906, HttpStatus.CONFLICT, "이미 사용 중인 현장 스태프 아이디입니다."),
