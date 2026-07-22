@@ -4,7 +4,7 @@ import com.example.demoadmin.api.report.dto.FestivalReportSummaryResponse;
 import com.example.demoadmin.auth.support.AdminPrincipal;
 import com.example.demoadmin.global.response.ApiResponse;
 import com.example.demoadmin.global.response.SuccessCode;
-import com.example.demoadmin.report.query.application.FestivalReportQueryService;
+import com.example.demoadmin.report.query.application.FestivalReportQueryApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class FestivalReportQueryController {
 
-    private final FestivalReportQueryService reportQueryService;
+    private final FestivalReportQueryApplicationService reportQueryService;
 
     /**
      * 담당 축제의 결과 보고서 요약 정보를 조회한다.

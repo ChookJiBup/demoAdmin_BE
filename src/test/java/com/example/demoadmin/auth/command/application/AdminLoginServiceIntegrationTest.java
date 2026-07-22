@@ -2,8 +2,8 @@ package com.example.demoadmin.auth.command.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
@@ -26,7 +26,7 @@ class AdminLoginServiceIntegrationTest {
     private AdminLoginService adminLoginService;
 
     @Autowired
-    private AdminAccountRepository adminAccountRepository;
+    private AdminAccountService adminAccountService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -40,7 +40,7 @@ class AdminLoginServiceIntegrationTest {
         void success_Login_PersistedAdmin() {
             // given
             AdminAccount adminAccount = adminAccount("Password!123");
-            adminAccountRepository.save(adminAccount);
+            adminAccountService.save(adminAccount);
             AdminLoginRequest request = new AdminLoginRequest(
                     "admin@mapo.go.kr",
                     "Password!123"

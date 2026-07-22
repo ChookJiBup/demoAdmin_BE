@@ -2,15 +2,15 @@ package com.example.demoadmin.operator.command.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.auth.support.AdminPrincipal;
+import com.example.demoadmin.festival.command.application.FestivalService;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
 import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
@@ -40,10 +40,10 @@ class FieldStaffLoginServiceIntegrationTest {
     private FieldStaffLoginService loginService;
 
     @Autowired
-    private FestivalRepository festivalRepository;
+    private FestivalService festivalService;
 
     @Autowired
-    private AdminAccountRepository adminAccountRepository;
+    private AdminAccountService adminAccountService;
 
     @Nested
     @DisplayName("login")
@@ -53,8 +53,8 @@ class FieldStaffLoginServiceIntegrationTest {
         @DisplayName("생성된 임시 비밀번호로 현장 스태프 로그인을 처리한다")
         void success_Login_Persisted() {
             // given
-            Festival festival = festivalRepository.save(festival());
-            AdminAccount adminAccount = adminAccountRepository.save(festivalOwner(festival.getId()));
+            Festival festival = festivalService.save(festival());
+            AdminAccount adminAccount = adminAccountService.save(festivalOwner(festival.getId()));
             CreateFieldStaffResult created = managementService.create(
                     festival.getPublicId(),
                     createCommand(),

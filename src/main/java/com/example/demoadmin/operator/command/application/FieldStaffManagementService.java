@@ -1,16 +1,15 @@
 package com.example.demoadmin.operator.command.application;
 
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.auth.support.AdminPrincipal;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
+import com.example.demoadmin.festival.command.application.FestivalService;
 import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
 import com.example.demoadmin.operator.command.application.dto.CreateFieldStaffCommand;
 import com.example.demoadmin.operator.command.application.dto.CreateFieldStaffResult;
 import com.example.demoadmin.operator.command.domain.FieldStaffAccount;
-import com.example.demoadmin.operator.command.domain.FieldStaffAccountRepository;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffLoginId;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffName;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffPasswordHash;
@@ -34,9 +33,9 @@ public class FieldStaffManagementService {
 
     private static final int PRE_OPEN_VALID_DAYS = 7;
 
-    private final FieldStaffAccountRepository fieldStaffAccountRepository;
-    private final FestivalRepository festivalRepository;
-    private final AdminAccountRepository adminAccountRepository;
+    private final FieldStaffAccountService fieldStaffAccountService;
+    private final FestivalService festivalService;
+    private final AdminAccountService adminAccountService;
     private final PasswordEncoder passwordEncoder;
     private final FieldStaffPasswordGenerator passwordGenerator;
 
@@ -53,7 +52,7 @@ public class FieldStaffManagementService {
         validateManagePermission(adminAccount, festival);
 
         FieldStaffLoginId loginId = FieldStaffLoginId.of(command.loginId());
-        if (fieldStaffAccountRepository.existsByFestivalIdAndLoginId(
+        if (fieldStaffAccountService.existsByFestivalIdAndLoginId(
                 festival.getId(),
                 loginId
         )) {
@@ -72,7 +71,7 @@ public class FieldStaffManagementService {
         );
 
         return new CreateFieldStaffResult(
-                fieldStaffAccountRepository.save(fieldStaffAccount),
+                fieldStaffAccountService.save(fieldStaffAccount),
                 temporaryPassword
         );
     }
@@ -89,9 +88,7 @@ public class FieldStaffManagementService {
         Festival festival = findFestival(festivalId);
         validateManagePermission(adminAccount, festival);
 
-        FieldStaffAccount fieldStaffAccount = fieldStaffAccountRepository
-                .findByPublicId(fieldStaffId)
-                .orElseThrow(() -> new CustomException(ErrorCode.FIELD_STAFF_NOT_FOUND));
+        FieldStaffAccount fieldStaffAccount = fieldStaffAccountService.getByPublicId(fieldStaffId);
         if (!festival.getId().equals(fieldStaffAccount.getFestivalId())) {
             throw new CustomException(ErrorCode.FIELD_STAFF_NOT_FOUND);
         }
@@ -104,13 +101,11 @@ public class FieldStaffManagementService {
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
 
-        return adminAccountRepository.findById(principal.adminId())
-                .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
+        return adminAccountService.getById(principal.adminId());
     }
 
     private Festival findFestival(UUID festivalId) {
-        return festivalRepository.findByPublicId(festivalId)
-                .orElseThrow(() -> new CustomException(ErrorCode.FESTIVAL_NOT_FOUND));
+        return festivalService.getByPublicId(festivalId);
     }
 
     private void validateManagePermission(

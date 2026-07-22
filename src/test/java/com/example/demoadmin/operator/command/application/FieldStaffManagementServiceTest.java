@@ -6,16 +6,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.AdminRole;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.auth.support.AdminPrincipal;
+import com.example.demoadmin.festival.command.application.FestivalService;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
 import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
@@ -26,13 +26,11 @@ import com.example.demoadmin.global.response.ErrorCode;
 import com.example.demoadmin.operator.command.application.dto.CreateFieldStaffCommand;
 import com.example.demoadmin.operator.command.application.dto.CreateFieldStaffResult;
 import com.example.demoadmin.operator.command.domain.FieldStaffAccount;
-import com.example.demoadmin.operator.command.domain.FieldStaffAccountRepository;
 import com.example.demoadmin.operator.command.domain.FieldStaffStatus;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffLoginId;
 import com.example.demoadmin.operator.command.infrastructure.FieldStaffPasswordGenerator;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -52,13 +50,13 @@ class FieldStaffManagementServiceTest {
     private FieldStaffManagementService service;
 
     @Mock
-    private FieldStaffAccountRepository fieldStaffAccountRepository;
+    private FieldStaffAccountService fieldStaffAccountService;
 
     @Mock
-    private FestivalRepository festivalRepository;
+    private FestivalService festivalService;
 
     @Mock
-    private AdminAccountRepository adminAccountRepository;
+    private AdminAccountService adminAccountService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -77,16 +75,16 @@ class FieldStaffManagementServiceTest {
             Festival festival = festival(1L);
             AdminAccount adminAccount = festivalOwner(1L);
             CreateFieldStaffCommand command = createCommand();
-            given(adminAccountRepository.findById(1L)).willReturn(Optional.of(adminAccount));
-            given(festivalRepository.findByPublicId(festival.getPublicId()))
-                    .willReturn(Optional.of(festival));
-            given(fieldStaffAccountRepository.existsByFestivalIdAndLoginId(
+            given(adminAccountService.getById(1L)).willReturn(adminAccount);
+            given(festivalService.getByPublicId(festival.getPublicId()))
+                    .willReturn(festival);
+            given(fieldStaffAccountService.existsByFestivalIdAndLoginId(
                     1L,
                     FieldStaffLoginId.of("staff01")
             )).willReturn(false);
             given(passwordGenerator.generate()).willReturn("TempPass123!");
             given(passwordEncoder.encode("TempPass123!")).willReturn("encoded-password");
-            given(fieldStaffAccountRepository.save(any(FieldStaffAccount.class)))
+            given(fieldStaffAccountService.save(any(FieldStaffAccount.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
 
             // when
@@ -105,7 +103,7 @@ class FieldStaffManagementServiceTest {
 
             ArgumentCaptor<FieldStaffAccount> captor =
                     ArgumentCaptor.forClass(FieldStaffAccount.class);
-            then(fieldStaffAccountRepository).should().save(captor.capture());
+            then(fieldStaffAccountService).should().save(captor.capture());
             assertThat(captor.getValue().getPasswordHashValue()).isEqualTo("encoded-password");
         }
 
@@ -116,16 +114,16 @@ class FieldStaffManagementServiceTest {
             Festival festival = festival(1L);
             AdminAccount adminAccount = subAdmin(1L);
             CreateFieldStaffCommand command = createCommand();
-            given(adminAccountRepository.findById(1L)).willReturn(Optional.of(adminAccount));
-            given(festivalRepository.findByPublicId(festival.getPublicId()))
-                    .willReturn(Optional.of(festival));
-            given(fieldStaffAccountRepository.existsByFestivalIdAndLoginId(
+            given(adminAccountService.getById(1L)).willReturn(adminAccount);
+            given(festivalService.getByPublicId(festival.getPublicId()))
+                    .willReturn(festival);
+            given(fieldStaffAccountService.existsByFestivalIdAndLoginId(
                     1L,
                     FieldStaffLoginId.of("staff01")
             )).willReturn(false);
             given(passwordGenerator.generate()).willReturn("TempPass123!");
             given(passwordEncoder.encode("TempPass123!")).willReturn("encoded-password");
-            given(fieldStaffAccountRepository.save(any(FieldStaffAccount.class)))
+            given(fieldStaffAccountService.save(any(FieldStaffAccount.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
 
             // when
@@ -144,11 +142,11 @@ class FieldStaffManagementServiceTest {
         void fail_Create_DuplicatedLoginId_CustomException() {
             // given
             Festival festival = festival(1L);
-            given(adminAccountRepository.findById(1L))
-                    .willReturn(Optional.of(festivalOwner(1L)));
-            given(festivalRepository.findByPublicId(festival.getPublicId()))
-                    .willReturn(Optional.of(festival));
-            given(fieldStaffAccountRepository.existsByFestivalIdAndLoginId(
+            given(adminAccountService.getById(1L))
+                    .willReturn(festivalOwner(1L));
+            given(festivalService.getByPublicId(festival.getPublicId()))
+                    .willReturn(festival);
+            given(fieldStaffAccountService.existsByFestivalIdAndLoginId(
                     1L,
                     FieldStaffLoginId.of("staff01")
             )).willReturn(true);
@@ -168,10 +166,10 @@ class FieldStaffManagementServiceTest {
         void fail_Create_DifferentFestival_CustomException() {
             // given
             Festival festival = festival(1L);
-            given(adminAccountRepository.findById(1L))
-                    .willReturn(Optional.of(festivalOwner(2L)));
-            given(festivalRepository.findByPublicId(festival.getPublicId()))
-                    .willReturn(Optional.of(festival));
+            given(adminAccountService.getById(1L))
+                    .willReturn(festivalOwner(2L));
+            given(festivalService.getByPublicId(festival.getPublicId()))
+                    .willReturn(festival);
 
             // when & then
             assertThatThrownBy(() -> service.create(
@@ -194,12 +192,12 @@ class FieldStaffManagementServiceTest {
             // given
             Festival festival = festival(1L);
             FieldStaffAccount account = fieldStaffAccount(1L);
-            given(adminAccountRepository.findById(1L))
-                    .willReturn(Optional.of(subAdmin(1L)));
-            given(festivalRepository.findByPublicId(festival.getPublicId()))
-                    .willReturn(Optional.of(festival));
-            given(fieldStaffAccountRepository.findByPublicId(account.getPublicId()))
-                    .willReturn(Optional.of(account));
+            given(adminAccountService.getById(1L))
+                    .willReturn(subAdmin(1L));
+            given(festivalService.getByPublicId(festival.getPublicId()))
+                    .willReturn(festival);
+            given(fieldStaffAccountService.getByPublicId(account.getPublicId()))
+                    .willReturn(account);
 
             // when
             service.delete(
@@ -218,12 +216,12 @@ class FieldStaffManagementServiceTest {
             // given
             Festival festival = festival(1L);
             FieldStaffAccount account = fieldStaffAccount(2L);
-            given(adminAccountRepository.findById(1L))
-                    .willReturn(Optional.of(festivalOwner(1L)));
-            given(festivalRepository.findByPublicId(festival.getPublicId()))
-                    .willReturn(Optional.of(festival));
-            given(fieldStaffAccountRepository.findByPublicId(account.getPublicId()))
-                    .willReturn(Optional.of(account));
+            given(adminAccountService.getById(1L))
+                    .willReturn(festivalOwner(1L));
+            given(festivalService.getByPublicId(festival.getPublicId()))
+                    .willReturn(festival);
+            given(fieldStaffAccountService.getByPublicId(account.getPublicId()))
+                    .willReturn(account);
 
             // when & then
             assertThatThrownBy(() -> service.delete(

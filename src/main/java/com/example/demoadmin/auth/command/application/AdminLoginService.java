@@ -1,13 +1,13 @@
 package com.example.demoadmin.auth.command.application;
 
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.auth.command.infrastructure.JwtTokenProvider;
 import com.example.demoadmin.api.auth.dto.AdminLoginRequest;
 import com.example.demoadmin.api.auth.dto.AdminLoginResponse;
+import com.example.demoadmin.festival.command.application.FestivalService;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
 import java.util.UUID;
@@ -23,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminLoginService {
 
-    private final AdminAccountRepository adminAccountRepository;
-    private final FestivalRepository festivalRepository;
+    private final AdminAccountService adminAccountService;
+    private final FestivalService festivalService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -34,8 +34,7 @@ public class AdminLoginService {
     @Transactional(readOnly = true)
     public AdminLoginResponse login(AdminLoginRequest request) {
         AdminEmail email = AdminEmail.of(request.email());
-        AdminAccount adminAccount = adminAccountRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_INVALID_CREDENTIALS));
+        AdminAccount adminAccount = adminAccountService.getByEmailForLogin(email);
 
         if (!passwordEncoder.matches(request.password(), adminAccount.getPasswordHashValue())) {
             throw new CustomException(ErrorCode.AUTH_INVALID_CREDENTIALS);
@@ -60,9 +59,7 @@ public class AdminLoginService {
             return null;
         }
 
-        return festivalRepository.findById(adminAccount.getFestivalId())
-                .map(Festival::getPublicId)
-                .orElseThrow(() -> new CustomException(ErrorCode.FESTIVAL_NOT_FOUND));
+        return festivalService.getById(adminAccount.getFestivalId()).getPublicId();
     }
 }
 

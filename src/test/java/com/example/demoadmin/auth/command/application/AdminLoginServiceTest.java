@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
@@ -13,8 +13,8 @@ import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.api.auth.dto.AdminLoginRequest;
 import com.example.demoadmin.api.auth.dto.AdminLoginResponse;
 import com.example.demoadmin.auth.command.infrastructure.JwtTokenProvider;
+import com.example.demoadmin.festival.command.application.FestivalService;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
 import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
@@ -24,7 +24,6 @@ import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,10 +42,10 @@ class AdminLoginServiceTest {
     private AdminLoginService adminLoginService;
 
     @Mock
-    private AdminAccountRepository adminAccountRepository;
+    private AdminAccountService adminAccountService;
 
     @Mock
-    private FestivalRepository festivalRepository;
+    private FestivalService festivalService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -64,8 +63,8 @@ class AdminLoginServiceTest {
             // given
             AdminLoginRequest request = loginRequest();
             AdminAccount adminAccount = adminAccount();
-            given(adminAccountRepository.findByEmail(AdminEmail.of(request.email())))
-                    .willReturn(Optional.of(adminAccount));
+            given(adminAccountService.getByEmailForLogin(AdminEmail.of(request.email())))
+                    .willReturn(adminAccount);
             given(passwordEncoder.matches(
                     request.password(),
                     adminAccount.getPasswordHashValue()
@@ -91,8 +90,8 @@ class AdminLoginServiceTest {
             AdminLoginRequest request = loginRequest();
             Festival festival = festival(1L);
             AdminAccount adminAccount = festivalOwner(festival.getId());
-            given(adminAccountRepository.findByEmail(AdminEmail.of(request.email())))
-                    .willReturn(Optional.of(adminAccount));
+            given(adminAccountService.getByEmailForLogin(AdminEmail.of(request.email())))
+                    .willReturn(adminAccount);
             given(passwordEncoder.matches(
                     request.password(),
                     adminAccount.getPasswordHashValue()
@@ -101,8 +100,8 @@ class AdminLoginServiceTest {
                     .willReturn("access-token");
             given(jwtTokenProvider.getAccessTokenExpirationSeconds())
                     .willReturn(1800L);
-            given(festivalRepository.findById(festival.getId()))
-                    .willReturn(Optional.of(festival));
+            given(festivalService.getById(festival.getId()))
+                    .willReturn(festival);
 
             // when
             AdminLoginResponse response = adminLoginService.login(request);
@@ -117,8 +116,8 @@ class AdminLoginServiceTest {
         void fail_Login_InvalidCredentials_CustomException() {
             // given
             AdminLoginRequest request = loginRequest();
-            given(adminAccountRepository.findByEmail(AdminEmail.of(request.email())))
-                    .willReturn(Optional.empty());
+            given(adminAccountService.getByEmailForLogin(AdminEmail.of(request.email())))
+                    .willThrow(new CustomException(ErrorCode.AUTH_INVALID_CREDENTIALS));
 
             // when & then
             assertThatThrownBy(() -> adminLoginService.login(request))
@@ -132,8 +131,8 @@ class AdminLoginServiceTest {
             // given
             AdminLoginRequest request = loginRequest();
             AdminAccount adminAccount = adminAccount();
-            given(adminAccountRepository.findByEmail(AdminEmail.of(request.email())))
-                    .willReturn(Optional.of(adminAccount));
+            given(adminAccountService.getByEmailForLogin(AdminEmail.of(request.email())))
+                    .willReturn(adminAccount);
             given(passwordEncoder.matches(
                     request.password(),
                     adminAccount.getPasswordHashValue()

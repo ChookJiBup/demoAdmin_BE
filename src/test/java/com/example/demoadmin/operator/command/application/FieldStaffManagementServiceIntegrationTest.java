@@ -2,16 +2,16 @@ package com.example.demoadmin.operator.command.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.AdminRole;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.auth.support.AdminPrincipal;
+import com.example.demoadmin.festival.command.application.FestivalService;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
 import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
@@ -20,7 +20,6 @@ import com.example.demoadmin.festival.command.domain.vo.FestivalPeriod;
 import com.example.demoadmin.operator.command.application.dto.CreateFieldStaffCommand;
 import com.example.demoadmin.operator.command.application.dto.CreateFieldStaffResult;
 import com.example.demoadmin.operator.command.domain.FieldStaffAccount;
-import com.example.demoadmin.operator.command.domain.FieldStaffAccountRepository;
 import com.example.demoadmin.operator.command.domain.FieldStaffStatus;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -39,13 +38,13 @@ class FieldStaffManagementServiceIntegrationTest {
     private FieldStaffManagementService managementService;
 
     @Autowired
-    private FieldStaffAccountRepository fieldStaffAccountRepository;
+    private FieldStaffAccountService fieldStaffAccountService;
 
     @Autowired
-    private FestivalRepository festivalRepository;
+    private FestivalService festivalService;
 
     @Autowired
-    private AdminAccountRepository adminAccountRepository;
+    private AdminAccountService adminAccountService;
 
     @Nested
     @DisplayName("create")
@@ -55,8 +54,8 @@ class FieldStaffManagementServiceIntegrationTest {
         @DisplayName("현장 스태프 계정을 DB에 저장한다")
         void success_Create_Persisted() {
             // given
-            Festival festival = festivalRepository.save(festival());
-            AdminAccount adminAccount = adminAccountRepository.save(festivalOwner(festival.getId()));
+            Festival festival = festivalService.save(festival());
+            AdminAccount adminAccount = adminAccountService.save(festivalOwner(festival.getId()));
             CreateFieldStaffCommand command = createCommand();
 
             // when
@@ -67,9 +66,9 @@ class FieldStaffManagementServiceIntegrationTest {
             );
 
             // then
-            FieldStaffAccount found = fieldStaffAccountRepository
-                    .findById(result.fieldStaffAccount().getId())
-                    .orElseThrow();
+            FieldStaffAccount found = fieldStaffAccountService.getById(
+                    result.fieldStaffAccount().getId()
+            );
             assertThat(found.getLoginIdValue()).isEqualTo("staff01");
             assertThat(found.getPasswordHashValue()).isNotEqualTo(result.temporaryPassword());
             assertThat(found.getValidFrom()).isEqualTo(festival.getStartDate().minusDays(7).atStartOfDay());
@@ -85,8 +84,8 @@ class FieldStaffManagementServiceIntegrationTest {
         @DisplayName("현장 스태프 계정을 삭제 상태로 저장한다")
         void success_Delete_Persisted() {
             // given
-            Festival festival = festivalRepository.save(festival());
-            AdminAccount adminAccount = adminAccountRepository.save(festivalOwner(festival.getId()));
+            Festival festival = festivalService.save(festival());
+            AdminAccount adminAccount = adminAccountService.save(festivalOwner(festival.getId()));
             CreateFieldStaffResult result = managementService.create(
                     festival.getPublicId(),
                     createCommand(),
@@ -101,9 +100,9 @@ class FieldStaffManagementServiceIntegrationTest {
             );
 
             // then
-            FieldStaffAccount found = fieldStaffAccountRepository
-                    .findById(result.fieldStaffAccount().getId())
-                    .orElseThrow();
+            FieldStaffAccount found = fieldStaffAccountService.getById(
+                    result.fieldStaffAccount().getId()
+            );
             assertThat(found.getStatus()).isEqualTo(FieldStaffStatus.DELETED);
         }
     }

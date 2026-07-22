@@ -1,7 +1,7 @@
 package com.example.demoadmin.auth.command.application;
 
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminSignupService {
 
-    private final AdminAccountRepository adminAccountRepository;
+    private final AdminAccountService adminAccountService;
     private final PasswordEncoder passwordEncoder;
     private final AdminEmailVerificationService emailVerificationService;
 
@@ -39,7 +39,7 @@ public class AdminSignupService {
         AdminName name = AdminName.of(request.name());
         AdminOrganization organization = AdminOrganization.of(request.organization());
 
-        if (adminAccountRepository.existsByEmail(email)) {
+        if (adminAccountService.existsByEmail(email)) {
             throw new CustomException(ErrorCode.AUTH_EMAIL_DUPLICATED);
         }
 
@@ -51,7 +51,7 @@ public class AdminSignupService {
         );
 
         emailVerificationService.ensureVerified(email);
-        AdminAccount savedAdminAccount = adminAccountRepository.save(adminAccount);
+        AdminAccount savedAdminAccount = adminAccountService.save(adminAccount);
         emailVerificationService.consumeVerified(email);
 
         return AdminSignupResponse.from(savedAdminAccount);

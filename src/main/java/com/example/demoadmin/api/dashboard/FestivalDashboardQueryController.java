@@ -2,7 +2,7 @@ package com.example.demoadmin.api.dashboard;
 
 import com.example.demoadmin.api.dashboard.dto.FestivalDashboardResponse;
 import com.example.demoadmin.auth.support.AdminPrincipal;
-import com.example.demoadmin.dashboard.query.application.FestivalDashboardQueryService;
+import com.example.demoadmin.dashboard.query.application.FestivalDashboardQueryApplicationService;
 import com.example.demoadmin.global.response.ApiResponse;
 import com.example.demoadmin.global.response.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class FestivalDashboardQueryController {
 
-    private final FestivalDashboardQueryService dashboardQueryService;
+    private final FestivalDashboardQueryApplicationService dashboardQueryService;
 
     /**
      * 담당 축제의 진행 중 대시보드 요약 정보를 조회한다.

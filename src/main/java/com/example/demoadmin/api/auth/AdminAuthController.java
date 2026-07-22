@@ -6,7 +6,7 @@ import com.example.demoadmin.api.auth.dto.AdminLoginRequest;
 import com.example.demoadmin.api.auth.dto.AdminLoginResponse;
 import com.example.demoadmin.api.auth.dto.AdminSignupRequest;
 import com.example.demoadmin.api.auth.dto.AdminSignupResponse;
-import com.example.demoadmin.auth.command.application.AdminEmailVerificationService;
+import com.example.demoadmin.auth.command.application.AdminEmailVerificationApplicationService;
 import com.example.demoadmin.auth.command.application.AdminLoginService;
 import com.example.demoadmin.auth.command.application.AdminSignupService;
 import com.example.demoadmin.global.response.ApiResponse;
@@ -33,7 +33,7 @@ public class AdminAuthController {
 
     private final AdminSignupService adminSignupService;
     private final AdminLoginService adminLoginService;
-    private final AdminEmailVerificationService emailVerificationService;
+    private final AdminEmailVerificationApplicationService emailVerificationService;
 
     /**
      * 정부 공식 이메일로 회원가입 인증 코드를 발송한다.

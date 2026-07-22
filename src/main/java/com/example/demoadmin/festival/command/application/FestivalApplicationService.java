@@ -1,14 +1,12 @@
 package com.example.demoadmin.festival.command.application;
 
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.auth.support.AdminPrincipal;
 import com.example.demoadmin.festival.command.application.dto.CreateFestivalCommand;
 import com.example.demoadmin.festival.command.application.dto.UpdateFestivalCommand;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.festival.command.domain.FestivalSeries;
-import com.example.demoadmin.festival.command.domain.FestivalSeriesRepository;
 import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
 import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
@@ -29,9 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class FestivalApplicationService {
 
-    private final FestivalRepository festivalRepository;
-    private final FestivalSeriesRepository festivalSeriesRepository;
-    private final AdminAccountRepository adminAccountRepository;
+    private final FestivalService festivalService;
+    private final FestivalSeriesService festivalSeriesService;
+    private final AdminAccountService adminAccountService;
 
     /**
      * 축제 묶음을 연결한 뒤 연도별 축제 기본 정보를 저장하고 생성자를 1관리자로 배정한다.
@@ -62,7 +60,7 @@ public class FestivalApplicationService {
                 )
         );
 
-        Festival savedFestival = festivalRepository.save(festival);
+        Festival savedFestival = festivalService.save(festival);
         creator.assignFestivalOwner(savedFestival.getId());
 
         return savedFestival;
@@ -73,15 +71,12 @@ public class FestivalApplicationService {
             FestivalName name
     ) {
         if (seriesId != null) {
-            return festivalSeriesRepository.findByPublicId(seriesId)
-                    .orElseThrow(() -> new CustomException(
-                            ErrorCode.FESTIVAL_SERIES_NOT_FOUND
-                    ));
+            return festivalSeriesService.getByPublicId(seriesId);
         }
 
         String normalizedName = FestivalSeries.normalize(name);
-        return festivalSeriesRepository.findByNormalizedName(normalizedName)
-                .orElseGet(() -> festivalSeriesRepository.save(
+        return festivalSeriesService.findByNormalizedName(normalizedName)
+                .orElseGet(() -> festivalSeriesService.save(
                         FestivalSeries.create(name)
                 ));
     }
@@ -90,7 +85,7 @@ public class FestivalApplicationService {
             Long seriesId,
             int year
     ) {
-        if (festivalRepository.existsBySeriesIdAndYear(seriesId, year)) {
+        if (festivalService.existsBySeriesIdAndYear(seriesId, year)) {
             throw new CustomException(ErrorCode.FESTIVAL_YEAR_ALREADY_EXISTS);
         }
     }
@@ -104,8 +99,7 @@ public class FestivalApplicationService {
             AdminPrincipal principal
     ) {
         AdminAccount adminAccount = findAuthenticatedAdmin(principal);
-        Festival festival = festivalRepository.findByPublicId(festivalId)
-                .orElseThrow(() -> new CustomException(ErrorCode.FESTIVAL_NOT_FOUND));
+        Festival festival = festivalService.getByPublicId(festivalId);
         validateFestivalOwner(festival.getId(), adminAccount);
         festival.updateBasicInfo(
                 FestivalName.of(command.name()),
@@ -136,7 +130,6 @@ public class FestivalApplicationService {
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
 
-        return adminAccountRepository.findById(principal.adminId())
-                .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
+        return adminAccountService.getById(principal.adminId());
     }
 }

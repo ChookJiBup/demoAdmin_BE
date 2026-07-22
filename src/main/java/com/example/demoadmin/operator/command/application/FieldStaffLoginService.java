@@ -1,13 +1,12 @@
 package com.example.demoadmin.operator.command.application;
 
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
+import com.example.demoadmin.festival.command.application.FestivalService;
 import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
 import com.example.demoadmin.operator.command.application.dto.FieldStaffLoginCommand;
 import com.example.demoadmin.operator.command.application.dto.FieldStaffLoginResult;
 import com.example.demoadmin.operator.command.domain.FieldStaffAccount;
-import com.example.demoadmin.operator.command.domain.FieldStaffAccountRepository;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffLoginId;
 import com.example.demoadmin.operator.command.infrastructure.FieldStaffTokenProvider;
 import java.time.Clock;
@@ -24,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class FieldStaffLoginService {
 
-    private final FieldStaffAccountRepository fieldStaffAccountRepository;
-    private final FestivalRepository festivalRepository;
+    private final FieldStaffAccountService fieldStaffAccountService;
+    private final FestivalService festivalService;
     private final PasswordEncoder passwordEncoder;
     private final FieldStaffTokenProvider tokenProvider;
     private final Clock clock;
@@ -35,16 +34,12 @@ public class FieldStaffLoginService {
      */
     @Transactional(readOnly = true)
     public FieldStaffLoginResult login(FieldStaffLoginCommand command) {
-        Festival festival = festivalRepository.findByPublicId(command.festivalId())
-                .orElseThrow(() -> new CustomException(ErrorCode.FESTIVAL_NOT_FOUND));
-        FieldStaffAccount fieldStaffAccount = fieldStaffAccountRepository
-                .findByFestivalIdAndLoginId(
+        Festival festival = festivalService.getByPublicId(command.festivalId());
+        FieldStaffAccount fieldStaffAccount = fieldStaffAccountService
+                .getByFestivalIdAndLoginIdForLogin(
                         festival.getId(),
                         FieldStaffLoginId.of(command.loginId())
-                )
-                .orElseThrow(() -> new CustomException(
-                        ErrorCode.FIELD_STAFF_INVALID_CREDENTIALS
-                ));
+                );
 
         if (!passwordEncoder.matches(
                 command.password(),

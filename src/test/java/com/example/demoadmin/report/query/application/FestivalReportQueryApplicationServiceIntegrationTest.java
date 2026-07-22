@@ -1,22 +1,22 @@
-package com.example.demoadmin.dashboard.query.application;
+package com.example.demoadmin.report.query.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.auth.support.AdminPrincipal;
-import com.example.demoadmin.dashboard.query.application.dto.FestivalDashboardView;
+import com.example.demoadmin.festival.command.application.FestivalService;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
 import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
 import com.example.demoadmin.festival.command.domain.vo.FestivalOperationTime;
 import com.example.demoadmin.festival.command.domain.vo.FestivalPeriod;
+import com.example.demoadmin.report.query.application.dto.FestivalReportSummaryView;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
@@ -29,39 +29,39 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Transactional
-class FestivalDashboardQueryServiceIntegrationTest {
+class FestivalReportQueryApplicationServiceIntegrationTest {
 
     @Autowired
-    private FestivalDashboardQueryService dashboardQueryService;
+    private FestivalReportQueryApplicationService reportQueryService;
 
     @Autowired
-    private AdminAccountRepository adminAccountRepository;
+    private AdminAccountService adminAccountService;
 
     @Autowired
-    private FestivalRepository festivalRepository;
+    private FestivalService festivalService;
 
     @Nested
-    @DisplayName("getDashboard")
-    class GetDashboard {
+    @DisplayName("getSummary")
+    class GetSummary {
 
         @Test
-        @DisplayName("담당 축제 대시보드 요약을 조회한다")
-        void success_GetDashboard_FestivalOwner() {
+        @DisplayName("담당 축제 결과 보고서 요약을 조회한다")
+        void success_GetSummary_FestivalOwner() {
             // given
-            Festival festival = festivalRepository.save(festival());
-            AdminAccount adminAccount = adminAccountRepository.save(
+            Festival festival = festivalService.save(festival());
+            AdminAccount adminAccount = adminAccountService.save(
                     festivalOwner(festival.getId())
             );
 
             // when
-            FestivalDashboardView view = dashboardQueryService.getDashboard(
+            FestivalReportSummaryView view = reportQueryService.getSummary(
                     festival.getPublicId(),
                     principal(adminAccount)
             );
 
             // then
             assertThat(view.festivalId()).isEqualTo(festival.getPublicId());
-            assertThat(view.currentVisitorCount()).isZero();
+            assertThat(view.totalVisitorCount()).isZero();
         }
     }
 

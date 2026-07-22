@@ -6,8 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.AdminRole;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
@@ -17,9 +17,7 @@ import com.example.demoadmin.auth.support.AdminPrincipal;
 import com.example.demoadmin.festival.command.application.dto.CreateFestivalCommand;
 import com.example.demoadmin.festival.command.application.dto.UpdateFestivalCommand;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.festival.command.domain.FestivalSeries;
-import com.example.demoadmin.festival.command.domain.FestivalSeriesRepository;
 import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
 import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
@@ -29,7 +27,6 @@ import com.example.demoadmin.global.response.CustomException;
 import com.example.demoadmin.global.response.ErrorCode;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -48,13 +45,13 @@ class FestivalApplicationServiceTest {
     private FestivalApplicationService festivalApplicationService;
 
     @Mock
-    private FestivalRepository festivalRepository;
+    private FestivalService festivalService;
 
     @Mock
-    private FestivalSeriesRepository festivalSeriesRepository;
+    private FestivalSeriesService festivalSeriesService;
 
     @Mock
-    private AdminAccountRepository adminAccountRepository;
+    private AdminAccountService adminAccountService;
 
     @Nested
     @DisplayName("create")
@@ -67,19 +64,19 @@ class FestivalApplicationServiceTest {
             CreateFestivalCommand command = createCommand();
             AdminAccount adminAccount = unassignedAdmin();
             AdminPrincipal principal = principal(null, null);
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(adminAccount));
-            given(festivalSeriesRepository.findByNormalizedName("마포나루새우젓축제"))
-                    .willReturn(Optional.empty());
-            given(festivalSeriesRepository.save(any(FestivalSeries.class)))
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(adminAccount);
+            given(festivalSeriesService.findByNormalizedName("마포나루새우젓축제"))
+                    .willReturn(java.util.Optional.empty());
+            given(festivalSeriesService.save(any(FestivalSeries.class)))
                     .willAnswer(invocation -> {
                         FestivalSeries festivalSeries = invocation.getArgument(0);
                         ReflectionTestUtils.setField(festivalSeries, "id", 10L);
                         return festivalSeries;
                     });
-            given(festivalRepository.existsBySeriesIdAndYear(10L, 2026))
+            given(festivalService.existsBySeriesIdAndYear(10L, 2026))
                     .willReturn(false);
-            given(festivalRepository.save(any(Festival.class)))
+            given(festivalService.save(any(Festival.class)))
                     .willAnswer(invocation -> {
                         Festival festival = invocation.getArgument(0);
                         ReflectionTestUtils.setField(festival, "id", 1L);
@@ -99,7 +96,7 @@ class FestivalApplicationServiceTest {
 
             ArgumentCaptor<Festival> captor =
                     ArgumentCaptor.forClass(Festival.class);
-            then(festivalRepository).should().save(captor.capture());
+            then(festivalService).should().save(captor.capture());
             assertThat(captor.getValue().getAddressValue())
                     .isEqualTo(command.address());
         }
@@ -112,13 +109,13 @@ class FestivalApplicationServiceTest {
             CreateFestivalCommand command = createCommand(festivalSeries.getPublicId());
             AdminAccount adminAccount = unassignedAdmin();
             AdminPrincipal principal = principal(null, null);
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(adminAccount));
-            given(festivalSeriesRepository.findByPublicId(festivalSeries.getPublicId()))
-                    .willReturn(Optional.of(festivalSeries));
-            given(festivalRepository.existsBySeriesIdAndYear(10L, 2026))
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(adminAccount);
+            given(festivalSeriesService.getByPublicId(festivalSeries.getPublicId()))
+                    .willReturn(festivalSeries);
+            given(festivalService.existsBySeriesIdAndYear(10L, 2026))
                     .willReturn(false);
-            given(festivalRepository.save(any(Festival.class)))
+            given(festivalService.save(any(Festival.class)))
                     .willAnswer(invocation -> {
                         Festival festival = invocation.getArgument(0);
                         ReflectionTestUtils.setField(festival, "id", 1L);
@@ -131,8 +128,8 @@ class FestivalApplicationServiceTest {
             // then
             assertThat(festival.getSeriesId()).isEqualTo(10L);
             assertThat(festival.getSeriesPublicId()).isEqualTo(festivalSeries.getPublicId());
-            then(festivalSeriesRepository).should()
-                    .findByPublicId(festivalSeries.getPublicId());
+            then(festivalSeriesService).should()
+                    .getByPublicId(festivalSeries.getPublicId());
         }
 
         @Test
@@ -142,11 +139,11 @@ class FestivalApplicationServiceTest {
             FestivalSeries festivalSeries = festivalSeries(10L);
             CreateFestivalCommand command = createCommand(festivalSeries.getPublicId());
             AdminPrincipal principal = principal(null, null);
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(unassignedAdmin()));
-            given(festivalSeriesRepository.findByPublicId(festivalSeries.getPublicId()))
-                    .willReturn(Optional.of(festivalSeries));
-            given(festivalRepository.existsBySeriesIdAndYear(10L, 2026))
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(unassignedAdmin());
+            given(festivalSeriesService.getByPublicId(festivalSeries.getPublicId()))
+                    .willReturn(festivalSeries);
+            given(festivalService.existsBySeriesIdAndYear(10L, 2026))
                     .willReturn(true);
 
             // when & then
@@ -165,10 +162,10 @@ class FestivalApplicationServiceTest {
             UUID seriesId = UUID.randomUUID();
             CreateFestivalCommand command = createCommand(seriesId);
             AdminPrincipal principal = principal(null, null);
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(unassignedAdmin()));
-            given(festivalSeriesRepository.findByPublicId(seriesId))
-                    .willReturn(Optional.empty());
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(unassignedAdmin());
+            given(festivalSeriesService.getByPublicId(seriesId))
+                    .willThrow(new CustomException(ErrorCode.FESTIVAL_SERIES_NOT_FOUND));
 
             // when & then
             assertThatThrownBy(() -> festivalApplicationService.create(
@@ -196,10 +193,10 @@ class FestivalApplicationServiceTest {
                     festivalId,
                     AdminRole.FESTIVAL_OWNER
             );
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(festivalOwner(festivalId)));
-            given(festivalRepository.findByPublicId(publicId))
-                    .willReturn(Optional.of(festival));
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(festivalOwner(festivalId));
+            given(festivalService.getByPublicId(publicId))
+                    .willReturn(festival);
 
             // when
             Festival updated = festivalApplicationService.update(
@@ -211,7 +208,7 @@ class FestivalApplicationServiceTest {
             // then
             assertThat(updated.getNameValue()).isEqualTo(command.name());
             assertThat(updated.getAddressValue()).isEqualTo(command.address());
-            then(festivalRepository).should().findByPublicId(publicId);
+            then(festivalService).should().getByPublicId(publicId);
         }
 
         @Test
@@ -221,10 +218,10 @@ class FestivalApplicationServiceTest {
             UUID festivalId = UUID.randomUUID();
             UpdateFestivalCommand command = updateCommand();
             AdminPrincipal principal = principal(1L, AdminRole.SUB_ADMIN);
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(subAdmin(1L)));
-            given(festivalRepository.findByPublicId(festivalId))
-                    .willReturn(Optional.of(festival(1L)));
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(subAdmin(1L));
+            given(festivalService.getByPublicId(festivalId))
+                    .willReturn(festival(1L));
 
             // when & then
             assertThatThrownBy(() -> festivalApplicationService.update(
@@ -243,10 +240,10 @@ class FestivalApplicationServiceTest {
             UUID festivalId = UUID.randomUUID();
             UpdateFestivalCommand command = updateCommand();
             AdminPrincipal principal = principal(2L, AdminRole.FESTIVAL_OWNER);
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(festivalOwner(2L)));
-            given(festivalRepository.findByPublicId(festivalId))
-                    .willReturn(Optional.of(festival(1L)));
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(festivalOwner(2L));
+            given(festivalService.getByPublicId(festivalId))
+                    .willReturn(festival(1L));
 
             // when & then
             assertThatThrownBy(() -> festivalApplicationService.update(
@@ -269,10 +266,10 @@ class FestivalApplicationServiceTest {
                     festivalId,
                     AdminRole.FESTIVAL_OWNER
             );
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(festivalOwner(festivalId)));
-            given(festivalRepository.findByPublicId(publicId))
-                    .willReturn(Optional.empty());
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(festivalOwner(festivalId));
+            given(festivalService.getByPublicId(publicId))
+                    .willThrow(new CustomException(ErrorCode.FESTIVAL_NOT_FOUND));
 
             // when & then
             assertThatThrownBy(() -> festivalApplicationService.update(
@@ -304,10 +301,10 @@ class FestivalApplicationServiceTest {
                     festivalId,
                     AdminRole.FESTIVAL_OWNER
             );
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(festivalOwner(festivalId)));
-            given(festivalRepository.findByPublicId(publicId))
-                    .willReturn(Optional.of(festival));
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(festivalOwner(festivalId));
+            given(festivalService.getByPublicId(publicId))
+                    .willReturn(festival);
 
             // when & then
             assertThatThrownBy(() -> festivalApplicationService.update(

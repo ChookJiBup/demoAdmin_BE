@@ -3,12 +3,11 @@ package com.example.demoadmin.auth.command.application;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.api.auth.dto.AdminEmailVerificationRequest;
 import com.example.demoadmin.auth.command.application.port.AdminEmailVerificationSender;
 import com.example.demoadmin.auth.command.domain.AdminEmailVerification;
-import com.example.demoadmin.auth.command.domain.AdminEmailVerificationRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,16 +17,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
-class AdminEmailVerificationServiceIntegrationTest {
+class AdminEmailVerificationApplicationServiceIntegrationTest {
 
     @Autowired
-    private AdminEmailVerificationService emailVerificationService;
+    private AdminEmailVerificationApplicationService emailVerificationService;
 
     @MockitoBean
-    private AdminAccountRepository adminAccountRepository;
+    private AdminAccountService adminAccountService;
 
     @MockitoBean
-    private AdminEmailVerificationRepository verificationRepository;
+    private AdminEmailVerificationService verificationService;
 
     @MockitoBean
     private AdminEmailVerificationSender verificationSender;
@@ -42,7 +41,7 @@ class AdminEmailVerificationServiceIntegrationTest {
             // given
             String email = "admin@mapo.go.kr";
             AdminEmail adminEmail = AdminEmail.of(email);
-            given(adminAccountRepository.existsByEmail(adminEmail))
+            given(adminAccountService.existsByEmail(adminEmail))
                     .willReturn(false);
 
             // when
@@ -53,7 +52,7 @@ class AdminEmailVerificationServiceIntegrationTest {
             // then
             ArgumentCaptor<AdminEmailVerification> captor =
                     ArgumentCaptor.forClass(AdminEmailVerification.class);
-            then(verificationRepository).should().save(captor.capture());
+            then(verificationService).should().save(captor.capture());
             then(verificationSender).should().send(
                     adminEmail,
                     captor.getValue().getCode()

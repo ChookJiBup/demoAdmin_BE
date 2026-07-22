@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
+import com.example.demoadmin.festival.command.application.FestivalService;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
 import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
@@ -16,7 +16,6 @@ import com.example.demoadmin.global.response.ErrorCode;
 import com.example.demoadmin.operator.command.application.dto.FieldStaffLoginCommand;
 import com.example.demoadmin.operator.command.application.dto.FieldStaffLoginResult;
 import com.example.demoadmin.operator.command.domain.FieldStaffAccount;
-import com.example.demoadmin.operator.command.domain.FieldStaffAccountRepository;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffLoginId;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffName;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffPasswordHash;
@@ -27,7 +26,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -46,10 +44,10 @@ class FieldStaffLoginServiceTest {
     private FieldStaffLoginService service;
 
     @Mock
-    private FieldStaffAccountRepository fieldStaffAccountRepository;
+    private FieldStaffAccountService fieldStaffAccountService;
 
     @Mock
-    private FestivalRepository festivalRepository;
+    private FestivalService festivalService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -71,12 +69,12 @@ class FieldStaffLoginServiceTest {
             Festival festival = festival(1L);
             FieldStaffAccount account = fieldStaffAccount(1L);
             FieldStaffLoginCommand command = command(festival.getPublicId(), "staff01", "plain");
-            given(festivalRepository.findByPublicId(festival.getPublicId()))
-                    .willReturn(Optional.of(festival));
-            given(fieldStaffAccountRepository.findByFestivalIdAndLoginId(
+            given(festivalService.getByPublicId(festival.getPublicId()))
+                    .willReturn(festival);
+            given(fieldStaffAccountService.getByFestivalIdAndLoginIdForLogin(
                     1L,
                     FieldStaffLoginId.of("staff01")
-            )).willReturn(Optional.of(account));
+            )).willReturn(account);
             given(passwordEncoder.matches("plain", "encoded-password")).willReturn(true);
             given(clock.instant()).willReturn(Instant.parse("2026-10-10T00:00:00Z"));
             given(clock.getZone()).willReturn(ZoneId.of("UTC"));
@@ -99,12 +97,12 @@ class FieldStaffLoginServiceTest {
             Festival festival = festival(1L);
             FieldStaffAccount account = fieldStaffAccount(1L);
             FieldStaffLoginCommand command = command(festival.getPublicId(), "staff01", "wrong");
-            given(festivalRepository.findByPublicId(festival.getPublicId()))
-                    .willReturn(Optional.of(festival));
-            given(fieldStaffAccountRepository.findByFestivalIdAndLoginId(
+            given(festivalService.getByPublicId(festival.getPublicId()))
+                    .willReturn(festival);
+            given(fieldStaffAccountService.getByFestivalIdAndLoginIdForLogin(
                     1L,
                     FieldStaffLoginId.of("staff01")
-            )).willReturn(Optional.of(account));
+            )).willReturn(account);
             given(passwordEncoder.matches("wrong", "encoded-password")).willReturn(false);
 
             // when & then
@@ -120,12 +118,12 @@ class FieldStaffLoginServiceTest {
             Festival festival = festival(1L);
             FieldStaffAccount account = fieldStaffAccount(1L);
             FieldStaffLoginCommand command = command(festival.getPublicId(), "staff01", "plain");
-            given(festivalRepository.findByPublicId(festival.getPublicId()))
-                    .willReturn(Optional.of(festival));
-            given(fieldStaffAccountRepository.findByFestivalIdAndLoginId(
+            given(festivalService.getByPublicId(festival.getPublicId()))
+                    .willReturn(festival);
+            given(fieldStaffAccountService.getByFestivalIdAndLoginIdForLogin(
                     1L,
                     FieldStaffLoginId.of("staff01")
-            )).willReturn(Optional.of(account));
+            )).willReturn(account);
             given(passwordEncoder.matches("plain", "encoded-password")).willReturn(true);
             given(clock.instant()).willReturn(Instant.parse("2026-10-08T23:59:59Z"));
             given(clock.getZone()).willReturn(ZoneId.of("UTC"));
@@ -144,12 +142,12 @@ class FieldStaffLoginServiceTest {
             FieldStaffAccount account = fieldStaffAccount(1L);
             account.delete();
             FieldStaffLoginCommand command = command(festival.getPublicId(), "staff01", "plain");
-            given(festivalRepository.findByPublicId(festival.getPublicId()))
-                    .willReturn(Optional.of(festival));
-            given(fieldStaffAccountRepository.findByFestivalIdAndLoginId(
+            given(festivalService.getByPublicId(festival.getPublicId()))
+                    .willReturn(festival);
+            given(fieldStaffAccountService.getByFestivalIdAndLoginIdForLogin(
                     1L,
                     FieldStaffLoginId.of("staff01")
-            )).willReturn(Optional.of(account));
+            )).willReturn(account);
             given(passwordEncoder.matches("plain", "encoded-password")).willReturn(true);
 
             // when & then

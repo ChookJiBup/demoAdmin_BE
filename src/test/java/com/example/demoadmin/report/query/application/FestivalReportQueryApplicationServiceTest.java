@@ -4,16 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.AdminRole;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.auth.support.AdminPrincipal;
+import com.example.demoadmin.festival.command.application.FestivalService;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
 import com.example.demoadmin.festival.command.domain.vo.FestivalAddress;
 import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
@@ -24,7 +24,6 @@ import com.example.demoadmin.global.response.ErrorCode;
 import com.example.demoadmin.report.query.application.dto.FestivalReportSummaryView;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -36,16 +35,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-class FestivalReportQueryServiceTest {
+class FestivalReportQueryApplicationServiceTest {
 
     @InjectMocks
-    private FestivalReportQueryService reportQueryService;
+    private FestivalReportQueryApplicationService reportQueryService;
 
     @Mock
-    private AdminAccountRepository adminAccountRepository;
+    private AdminAccountService adminAccountService;
 
     @Mock
-    private FestivalRepository festivalRepository;
+    private FestivalService festivalService;
 
     @Nested
     @DisplayName("getSummary")
@@ -59,10 +58,10 @@ class FestivalReportQueryServiceTest {
             Festival festival = festival(festivalId);
             UUID publicId = festival.getPublicId();
             AdminPrincipal principal = principal(festivalId, AdminRole.FESTIVAL_OWNER);
-            given(festivalRepository.findByPublicId(publicId))
-                    .willReturn(Optional.of(festival));
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(festivalOwner(festivalId)));
+            given(festivalService.getByPublicId(publicId))
+                    .willReturn(festival);
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(festivalOwner(festivalId));
 
             // when
             FestivalReportSummaryView view = reportQueryService.getSummary(
@@ -83,10 +82,10 @@ class FestivalReportQueryServiceTest {
             Festival festival = festival(1L);
             UUID publicId = festival.getPublicId();
             AdminPrincipal principal = principal(2L, AdminRole.FESTIVAL_OWNER);
-            given(festivalRepository.findByPublicId(publicId))
-                    .willReturn(Optional.of(festival));
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(festivalOwner(2L)));
+            given(festivalService.getByPublicId(publicId))
+                    .willReturn(festival);
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(festivalOwner(2L));
 
             // when & then
             assertThatThrownBy(() -> reportQueryService.getSummary(
@@ -104,10 +103,10 @@ class FestivalReportQueryServiceTest {
             Festival festival = festival(1L);
             UUID publicId = festival.getPublicId();
             AdminPrincipal principal = principal(null, null);
-            given(festivalRepository.findByPublicId(publicId))
-                    .willReturn(Optional.of(festival));
-            given(adminAccountRepository.findById(principal.adminId()))
-                    .willReturn(Optional.of(unassignedAdmin()));
+            given(festivalService.getByPublicId(publicId))
+                    .willReturn(festival);
+            given(adminAccountService.getById(principal.adminId()))
+                    .willReturn(unassignedAdmin());
 
             // when & then
             assertThatThrownBy(() -> reportQueryService.getSummary(

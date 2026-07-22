@@ -2,8 +2,8 @@ package com.example.demoadmin.festival.command.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.AdminRole;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.admin.command.domain.vo.AdminName;
@@ -12,8 +12,6 @@ import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.auth.support.AdminPrincipal;
 import com.example.demoadmin.festival.command.application.dto.CreateFestivalCommand;
 import com.example.demoadmin.festival.command.domain.Festival;
-import com.example.demoadmin.festival.command.domain.FestivalRepository;
-import com.example.demoadmin.festival.command.domain.FestivalSeriesRepository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import org.junit.jupiter.api.DisplayName;
@@ -31,13 +29,13 @@ class FestivalApplicationServiceIntegrationTest {
     private FestivalApplicationService festivalApplicationService;
 
     @Autowired
-    private FestivalRepository festivalRepository;
+    private FestivalService festivalService;
 
     @Autowired
-    private FestivalSeriesRepository festivalSeriesRepository;
+    private FestivalSeriesService festivalSeriesService;
 
     @Autowired
-    private AdminAccountRepository adminAccountRepository;
+    private AdminAccountService adminAccountService;
 
     @Nested
     @DisplayName("create")
@@ -47,7 +45,7 @@ class FestivalApplicationServiceIntegrationTest {
         @DisplayName("축제를 저장하고 생성자를 1관리자로 배정한다")
         void success_Create_AssignFestivalOwner() {
             // given
-            AdminAccount adminAccount = adminAccountRepository.save(
+            AdminAccount adminAccount = adminAccountService.save(
                     unassignedAdmin()
             );
             CreateFestivalCommand command = createCommand();
@@ -59,17 +57,13 @@ class FestivalApplicationServiceIntegrationTest {
             );
 
             // then
-            AdminAccount foundAdmin = adminAccountRepository
-                    .findById(adminAccount.getId())
-                    .orElseThrow();
-            Festival foundFestival = festivalRepository
-                    .findById(festival.getId())
-                    .orElseThrow();
+            AdminAccount foundAdmin = adminAccountService.getById(adminAccount.getId());
+            Festival foundFestival = festivalService.getById(festival.getId());
             assertThat(foundFestival.getNameValue()).isEqualTo(command.name());
             assertThat(foundFestival.getSeriesId()).isNotNull();
             assertThat(foundFestival.getYear()).isEqualTo(2026);
-            assertThat(festivalSeriesRepository.findById(foundFestival.getSeriesId()))
-                    .isPresent();
+            assertThat(festivalSeriesService.getById(foundFestival.getSeriesId()))
+                    .isNotNull();
             assertThat(foundAdmin.getFestivalId()).isEqualTo(foundFestival.getId());
             assertThat(foundAdmin.getRole()).isEqualTo(AdminRole.FESTIVAL_OWNER);
         }

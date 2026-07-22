@@ -2,8 +2,8 @@ package com.example.demoadmin.auth.command.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
-import com.example.demoadmin.admin.command.domain.AdminAccountRepository;
 import com.example.demoadmin.admin.command.domain.vo.AdminEmail;
 import com.example.demoadmin.api.auth.dto.AdminSignupRequest;
 import com.example.demoadmin.api.auth.dto.AdminSignupResponse;
@@ -23,7 +23,7 @@ class AdminSignupServiceIntegrationTest {
     private AdminSignupService adminSignupService;
 
     @Autowired
-    private AdminAccountRepository adminAccountRepository;
+    private AdminAccountService adminAccountService;
 
     @MockitoBean
     private AdminEmailVerificationService emailVerificationService;
@@ -42,9 +42,9 @@ class AdminSignupServiceIntegrationTest {
             AdminSignupResponse response = adminSignupService.signup(request);
 
             // then
-            AdminAccount saved = adminAccountRepository
-                    .findByEmail(AdminEmail.of(request.email()))
-                    .orElseThrow();
+            AdminAccount saved = adminAccountService.getByEmailForLogin(
+                    AdminEmail.of(request.email())
+            );
             assertThat(response.adminId()).isEqualTo(saved.getPublicId());
             assertThat(saved.getFestivalId()).isNull();
             assertThat(saved.getRole()).isNull();
