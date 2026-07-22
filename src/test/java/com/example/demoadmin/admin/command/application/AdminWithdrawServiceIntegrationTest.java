@@ -1,6 +1,7 @@
 package com.example.demoadmin.admin.command.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.example.demoadmin.admin.command.domain.AdminAccount;
 import com.example.demoadmin.admin.command.domain.AdminStatus;
@@ -9,6 +10,8 @@ import com.example.demoadmin.admin.command.domain.vo.AdminName;
 import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.auth.support.AdminPrincipal;
+import com.example.demoadmin.global.response.CustomException;
+import com.example.demoadmin.global.response.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -48,6 +51,25 @@ class AdminWithdrawServiceIntegrationTest {
             // then
             AdminAccount found = adminAccountService.getById(saved.getId());
             assertThat(found.getStatus()).isEqualTo(AdminStatus.DELETED);
+        }
+
+        @Test
+        @DisplayName("저장된 탈퇴 계정은 다시 탈퇴 처리할 수 없다")
+        void fail_Withdraw_AlreadyWithdrawn_CustomException() {
+            // given
+            AdminAccount saved = adminAccountService.save(adminAccount());
+            AdminPrincipal principal = new AdminPrincipal(
+                    saved.getId(),
+                    null,
+                    saved.getEmailValue(),
+                    null
+            );
+            adminWithdrawService.withdraw(principal);
+
+            // when & then
+            assertThatThrownBy(() -> adminWithdrawService.withdraw(principal))
+                    .isInstanceOf(CustomException.class)
+                    .hasMessage(ErrorCode.AUTH_ADMIN_ALREADY_WITHDRAWN.getMessage());
         }
     }
 

@@ -143,6 +143,26 @@ class AdminLoginServiceTest {
                     .isInstanceOf(CustomException.class)
                     .hasMessage(ErrorCode.AUTH_INVALID_CREDENTIALS.getMessage());
         }
+
+        @Test
+        @DisplayName("탈퇴한 관리자 계정은 로그인할 수 없다")
+        void fail_Login_InactiveAdmin_CustomException() {
+            // given
+            AdminLoginRequest request = loginRequest();
+            AdminAccount adminAccount = adminAccount();
+            adminAccount.withdraw();
+            given(adminAccountService.getByEmailForLogin(AdminEmail.of(request.email())))
+                    .willReturn(adminAccount);
+            given(passwordEncoder.matches(
+                    request.password(),
+                    adminAccount.getPasswordHashValue()
+            )).willReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> adminLoginService.login(request))
+                    .isInstanceOf(CustomException.class)
+                    .hasMessage(ErrorCode.AUTH_ADMIN_INACTIVE.getMessage());
+        }
     }
 
     private AdminLoginRequest loginRequest() {

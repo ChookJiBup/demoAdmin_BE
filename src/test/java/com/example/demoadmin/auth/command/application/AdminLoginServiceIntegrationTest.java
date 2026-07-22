@@ -1,6 +1,7 @@
 package com.example.demoadmin.auth.command.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.example.demoadmin.admin.command.application.AdminAccountService;
 import com.example.demoadmin.admin.command.domain.AdminAccount;
@@ -10,6 +11,8 @@ import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.api.auth.dto.AdminLoginRequest;
 import com.example.demoadmin.api.auth.dto.AdminLoginResponse;
+import com.example.demoadmin.global.response.CustomException;
+import com.example.demoadmin.global.response.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -54,6 +57,24 @@ class AdminLoginServiceIntegrationTest {
             assertThat(response.admin().email()).isEqualTo(request.email());
             assertThat(response.admin().festivalId()).isNull();
             assertThat(response.admin().role()).isNull();
+        }
+
+        @Test
+        @DisplayName("탈퇴 상태로 저장된 관리자 계정은 로그인할 수 없다")
+        void fail_Login_WithdrawnAdmin_CustomException() {
+            // given
+            AdminAccount adminAccount = adminAccount("Password!123");
+            adminAccount.withdraw();
+            adminAccountService.save(adminAccount);
+            AdminLoginRequest request = new AdminLoginRequest(
+                    "admin@mapo.go.kr",
+                    "Password!123"
+            );
+
+            // when & then
+            assertThatThrownBy(() -> adminLoginService.login(request))
+                    .isInstanceOf(CustomException.class)
+                    .hasMessage(ErrorCode.AUTH_ADMIN_INACTIVE.getMessage());
         }
     }
 

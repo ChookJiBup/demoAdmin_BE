@@ -67,6 +67,26 @@ class AdminWithdrawServiceTest {
                     .isInstanceOf(CustomException.class)
                     .hasMessage(ErrorCode.UNAUTHORIZED.getMessage());
         }
+
+        @Test
+        @DisplayName("이미 탈퇴한 계정이면 탈퇴 예외를 던진다")
+        void fail_Withdraw_AlreadyWithdrawn_CustomException() {
+            // given
+            AdminAccount adminAccount = adminAccount();
+            adminAccount.withdraw();
+            AdminPrincipal principal = new AdminPrincipal(
+                    1L,
+                    null,
+                    "admin@mapo.go.kr",
+                    null
+            );
+            given(adminAccountService.getById(1L)).willReturn(adminAccount);
+
+            // when & then
+            assertThatThrownBy(() -> adminWithdrawService.withdraw(principal))
+                    .isInstanceOf(CustomException.class)
+                    .hasMessage(ErrorCode.AUTH_ADMIN_ALREADY_WITHDRAWN.getMessage());
+        }
     }
 
     private AdminAccount adminAccount() {
