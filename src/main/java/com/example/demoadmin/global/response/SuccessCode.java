@@ -11,6 +11,7 @@ public enum SuccessCode {
     ADMIN_EMAIL_VERIFICATION_CONFIRM_SUCCESS(21003, "관리자 이메일 인증이 완료되었습니다."),
     ADMIN_WITHDRAW_SUCCESS(21004, "관리자 회원탈퇴가 완료되었습니다."),
     ADMIN_SUB_ADMIN_READ_SUCCESS(21005, "서브관리자 조회가 완료되었습니다."),
+    ADMIN_SUB_ADMIN_CANDIDATE_READ_SUCCESS(21006, "서브관리자 초대 후보 조회가 완료되었습니다."),
     FESTIVAL_CREATE_SUCCESS(22000, "축제 기본 정보가 저장되었습니다."),
     FESTIVAL_UPDATE_SUCCESS(22001, "축제 기본 정보가 수정되었습니다."),
     FIELD_STAFF_CREATE_SUCCESS(22002, "현장 스태프 계정이 생성되었습니다."),
