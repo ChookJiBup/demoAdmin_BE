@@ -12,6 +12,7 @@ import com.example.demoadmin.festival.query.application.dto.InternalFestivalProg
 import com.example.demoadmin.festival.query.application.dto.InternalFestivalSearchCondition;
 import com.example.demoadmin.festival.query.application.dto.InternalFestivalSummaryProjection;
 import com.example.demoadmin.festival.query.repository.InternalFestivalQueryRepository;
+import com.example.demoadmin.global.config.QuerydslConfig;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -25,7 +26,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 
 @DataJpaTest
-@Import(InternalFestivalQueryRepositoryImpl.class)
+@Import({InternalFestivalQueryRepositoryImpl.class, QuerydslConfig.class})
 class InternalFestivalQueryRepositoryTest {
 
     @Autowired

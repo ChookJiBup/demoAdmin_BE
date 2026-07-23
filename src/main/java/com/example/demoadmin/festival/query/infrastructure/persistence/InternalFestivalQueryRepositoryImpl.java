@@ -1,13 +1,13 @@
 package com.example.demoadmin.festival.query.infrastructure.persistence;
 
+import com.example.demoadmin.festival.command.domain.QFestival;
 import com.example.demoadmin.festival.query.application.dto.InternalFestivalProgressStatus;
 import com.example.demoadmin.festival.query.application.dto.InternalFestivalSearchCondition;
 import com.example.demoadmin.festival.query.application.dto.InternalFestivalSummaryProjection;
 import com.example.demoadmin.festival.query.repository.InternalFestivalQueryRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
-import java.util.HashMap;
-import java.util.Map;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,122 +22,84 @@ import org.springframework.stereotype.Repository;
 public class InternalFestivalQueryRepositoryImpl
         implements InternalFestivalQueryRepository {
 
-    private static final String FESTIVAL_SELECT = """
-            select new com.example.demoadmin.festival.query.application.dto.InternalFestivalSummaryProjection(
-                f.publicId,
-                f.seriesPublicId,
-                f.name.value,
-                f.description.value,
-                f.address.value,
-                f.year,
-                f.period.startDate,
-                f.period.endDate,
-                f.operationTime.startTime,
-                f.operationTime.endTime
-            )
-            from Festival f
-            """;
-
-    private static final String FESTIVAL_COUNT = """
-            select count(f.id)
-            from Festival f
-            """;
-
-    private final EntityManager entityManager;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public Page<InternalFestivalSummaryProjection> searchFestivals(
             InternalFestivalSearchCondition condition,
             Pageable pageable
     ) {
-        QueryParts queryParts = queryParts(condition);
-        String orderBy = " order by f.period.startDate asc, f.id asc";
+        QFestival festival = QFestival.festival;
 
-        TypedQuery<InternalFestivalSummaryProjection> contentQuery =
-                entityManager.createQuery(
-                        FESTIVAL_SELECT + queryParts.whereClause() + orderBy,
-                        InternalFestivalSummaryProjection.class
-                );
-        bindParameters(contentQuery, queryParts.parameters());
-        contentQuery.setFirstResult((int) pageable.getOffset());
-        contentQuery.setMaxResults(pageable.getPageSize());
+        var content = queryFactory
+                .select(Projections.constructor(
+                        InternalFestivalSummaryProjection.class,
+                        festival.publicId,
+                        festival.seriesPublicId,
+                        festival.name.value,
+                        festival.description.value,
+                        festival.address.value,
+                        festival.year,
+                        festival.period.startDate,
+                        festival.period.endDate,
+                        festival.operationTime.startTime,
+                        festival.operationTime.endTime
+                ))
+                .from(festival)
+                .where(
+                        progressStatusEq(festival, condition),
+                        keywordContains(festival, condition)
+                )
+                .orderBy(festival.period.startDate.asc(), festival.id.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
-        TypedQuery<Long> countQuery = entityManager.createQuery(
-                FESTIVAL_COUNT + queryParts.whereClause(),
-                Long.class
-        );
-        bindParameters(countQuery, queryParts.parameters());
+        Long total = queryFactory
+                .select(festival.id.count())
+                .from(festival)
+                .where(
+                        progressStatusEq(festival, condition),
+                        keywordContains(festival, condition)
+                )
+                .fetchOne();
 
         return new PageImpl<>(
-                contentQuery.getResultList(),
+                content,
                 pageable,
-                countQuery.getSingleResult()
+                total == null ? 0L : total
         );
     }
 
-    private QueryParts queryParts(InternalFestivalSearchCondition condition) {
-        StringBuilder where = new StringBuilder(" where 1 = 1");
-        Map<String, Object> parameters = new HashMap<>();
-
-        appendProgressStatusCondition(where, parameters, condition);
-        appendKeywordCondition(where, parameters, condition);
-
-        return new QueryParts(where.toString(), parameters);
-    }
-
-    private void appendProgressStatusCondition(
-            StringBuilder where,
-            Map<String, Object> parameters,
+    private BooleanExpression progressStatusEq(
+            QFestival festival,
             InternalFestivalSearchCondition condition
     ) {
         InternalFestivalProgressStatus status = condition.progressStatus();
         if (status == null) {
-            return;
+            return null;
         }
 
-        parameters.put("today", condition.today());
         if (status == InternalFestivalProgressStatus.UPCOMING) {
-            where.append(" and f.period.startDate > :today");
-            return;
+            return festival.period.startDate.gt(condition.today());
         }
         if (status == InternalFestivalProgressStatus.ONGOING) {
-            where.append("""
-                     and f.period.startDate <= :today
-                     and f.period.endDate >= :today
-                    """);
-            return;
+            return festival.period.startDate.loe(condition.today())
+                    .and(festival.period.endDate.goe(condition.today()));
         }
-        where.append(" and f.period.endDate < :today");
+
+        return festival.period.endDate.lt(condition.today());
     }
 
-    private void appendKeywordCondition(
-            StringBuilder where,
-            Map<String, Object> parameters,
+    private BooleanExpression keywordContains(
+            QFestival festival,
             InternalFestivalSearchCondition condition
     ) {
         if (condition.keyword() == null) {
-            return;
+            return null;
         }
 
-        where.append("""
-                 and (
-                    lower(f.name.value) like concat('%', :keyword, '%')
-                    or lower(f.address.value) like concat('%', :keyword, '%')
-                 )
-                """);
-        parameters.put("keyword", condition.keyword());
-    }
-
-    private void bindParameters(
-            TypedQuery<?> query,
-            Map<String, Object> parameters
-    ) {
-        parameters.forEach(query::setParameter);
-    }
-
-    private record QueryParts(
-            String whereClause,
-            Map<String, Object> parameters
-    ) {
+        return festival.name.value.containsIgnoreCase(condition.keyword())
+                .or(festival.address.value.containsIgnoreCase(condition.keyword()));
     }
 }
