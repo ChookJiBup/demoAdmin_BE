@@ -1,6 +1,7 @@
 package com.example.demoadmin.global.config;
 
 import com.example.demoadmin.auth.support.JwtAuthenticationFilter;
+import com.example.demoadmin.global.security.internal.InternalApiAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final InternalApiAuthenticationFilter internalApiAuthenticationFilter;
 
     /**
      * 회원가입과 로그인은 공개하고 그 외 관리자 API는 인증을 요구한다.
@@ -52,6 +54,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+                .addFilterBefore(
+                        internalApiAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

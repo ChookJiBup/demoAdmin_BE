@@ -28,3 +28,10 @@ app:
   jwt:
     secret: ${APP_JWT_SECRET}
     access-token-expiration-seconds: 1800
+  internal-auth:
+    timestamp-tolerance: ${APP_INTERNAL_AUTH_TIMESTAMP_TOLERANCE:5m}
+    nonce-ttl: ${APP_INTERNAL_AUTH_NONCE_TTL:10m}
+    clients:
+      demo-user-server:
+        secret: ${APP_INTERNAL_DEMO_USER_SECRET:}
+        previous-secret: ${APP_INTERNAL_DEMO_USER_PREVIOUS_SECRET:}
