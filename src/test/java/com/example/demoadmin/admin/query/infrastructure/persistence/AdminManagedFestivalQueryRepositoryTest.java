@@ -17,6 +17,7 @@ import com.example.demoadmin.festival.command.domain.vo.FestivalDescription;
 import com.example.demoadmin.festival.command.domain.vo.FestivalName;
 import com.example.demoadmin.festival.command.domain.vo.FestivalOperationTime;
 import com.example.demoadmin.festival.command.domain.vo.FestivalPeriod;
+import com.example.demoadmin.global.config.QuerydslConfig;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -29,7 +30,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
-@Import(AdminManagedFestivalQueryRepositoryImpl.class)
+@Import({AdminManagedFestivalQueryRepositoryImpl.class, QuerydslConfig.class})
 class AdminManagedFestivalQueryRepositoryTest {
 
     @Autowired

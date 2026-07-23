@@ -2,9 +2,12 @@ package com.example.demoadmin.admin.query.infrastructure.persistence;
 
 import com.example.demoadmin.admin.command.domain.AdminRole;
 import com.example.demoadmin.admin.command.domain.AdminStatus;
+import com.example.demoadmin.admin.command.domain.QAdminAccount;
 import com.example.demoadmin.admin.query.application.dto.AdminSubAdminView;
 import com.example.demoadmin.admin.query.repository.AdminSubAdminQueryRepository;
-import jakarta.persistence.EntityManager;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,18 +19,7 @@ import org.springframework.stereotype.Repository;
 public class AdminSubAdminQueryRepositoryImpl
         implements AdminSubAdminQueryRepository {
 
-    private static final String SUB_ADMIN_SELECT = """
-            select new com.example.demoadmin.admin.query.application.dto.AdminSubAdminView(
-                a.publicId,
-                a.email.value,
-                a.name.value,
-                a.organization.value,
-                a.status
-            )
-            from AdminAccount a
-            """;
-
-    private final EntityManager entityManager;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public List<AdminSubAdminView> searchInvitedSubAdmins(
@@ -35,28 +27,27 @@ public class AdminSubAdminQueryRepositoryImpl
             Long invitedByAdminId,
             String keyword
     ) {
-        return entityManager.createQuery(
-                        SUB_ADMIN_SELECT + """
-                                where a.festivalId = :festivalId
-                                  and a.invitedByAdminId = :invitedByAdminId
-                                  and a.role = :role
-                                  and a.status = :status
-                                  and (
-                                      :keyword is null
-                                      or lower(a.email.value) like concat('%', :keyword, '%')
-                                      or lower(a.name.value) like concat('%', :keyword, '%')
-                                      or lower(a.organization.value) like concat('%', :keyword, '%')
-                                  )
-                                order by a.id asc
-                                """,
-                        AdminSubAdminView.class
+        QAdminAccount adminAccount = QAdminAccount.adminAccount;
+
+        return queryFactory
+                .select(Projections.constructor(
+                        AdminSubAdminView.class,
+                        adminAccount.publicId,
+                        adminAccount.email.value,
+                        adminAccount.name.value,
+                        adminAccount.organization.value,
+                        adminAccount.status
+                ))
+                .from(adminAccount)
+                .where(
+                        adminAccount.festivalId.eq(festivalId),
+                        adminAccount.invitedByAdminId.eq(invitedByAdminId),
+                        adminAccount.role.eq(AdminRole.SUB_ADMIN),
+                        adminAccount.status.eq(AdminStatus.ACTIVE),
+                        keywordContains(adminAccount, keyword)
                 )
-                .setParameter("festivalId", festivalId)
-                .setParameter("invitedByAdminId", invitedByAdminId)
-                .setParameter("role", AdminRole.SUB_ADMIN)
-                .setParameter("status", AdminStatus.ACTIVE)
-                .setParameter("keyword", keyword)
-                .getResultList();
+                .orderBy(adminAccount.id.asc())
+                .fetch();
     }
 
     @Override
@@ -65,22 +56,40 @@ public class AdminSubAdminQueryRepositoryImpl
             Long invitedByAdminId,
             UUID publicId
     ) {
-        return entityManager.createQuery(
-                        SUB_ADMIN_SELECT + """
-                                where a.festivalId = :festivalId
-                                  and a.invitedByAdminId = :invitedByAdminId
-                                  and a.publicId = :publicId
-                                  and a.role = :role
-                                  and a.status = :status
-                                """,
-                        AdminSubAdminView.class
+        QAdminAccount adminAccount = QAdminAccount.adminAccount;
+
+        AdminSubAdminView result = queryFactory
+                .select(Projections.constructor(
+                        AdminSubAdminView.class,
+                        adminAccount.publicId,
+                        adminAccount.email.value,
+                        adminAccount.name.value,
+                        adminAccount.organization.value,
+                        adminAccount.status
+                ))
+                .from(adminAccount)
+                .where(
+                        adminAccount.festivalId.eq(festivalId),
+                        adminAccount.invitedByAdminId.eq(invitedByAdminId),
+                        adminAccount.publicId.eq(publicId),
+                        adminAccount.role.eq(AdminRole.SUB_ADMIN),
+                        adminAccount.status.eq(AdminStatus.ACTIVE)
                 )
-                .setParameter("festivalId", festivalId)
-                .setParameter("invitedByAdminId", invitedByAdminId)
-                .setParameter("publicId", publicId)
-                .setParameter("role", AdminRole.SUB_ADMIN)
-                .setParameter("status", AdminStatus.ACTIVE)
-                .getResultStream()
-                .findFirst();
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    private BooleanExpression keywordContains(
+            QAdminAccount adminAccount,
+            String keyword
+    ) {
+        if (keyword == null) {
+            return null;
+        }
+
+        return adminAccount.email.value.containsIgnoreCase(keyword)
+                .or(adminAccount.name.value.containsIgnoreCase(keyword))
+                .or(adminAccount.organization.value.containsIgnoreCase(keyword));
     }
 }

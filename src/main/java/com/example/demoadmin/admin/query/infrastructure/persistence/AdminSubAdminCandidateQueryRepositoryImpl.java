@@ -1,9 +1,12 @@
 package com.example.demoadmin.admin.query.infrastructure.persistence;
 
 import com.example.demoadmin.admin.command.domain.AdminStatus;
+import com.example.demoadmin.admin.command.domain.QAdminAccount;
 import com.example.demoadmin.admin.query.application.dto.AdminSubAdminCandidateView;
 import com.example.demoadmin.admin.query.repository.AdminSubAdminCandidateQueryRepository;
-import jakarta.persistence.EntityManager;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -13,35 +16,42 @@ import org.springframework.stereotype.Repository;
 public class AdminSubAdminCandidateQueryRepositoryImpl
         implements AdminSubAdminCandidateQueryRepository {
 
-    private final EntityManager entityManager;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public List<AdminSubAdminCandidateView> searchCandidates(String keyword) {
-        return entityManager.createQuery(
-                        """
-                                select new com.example.demoadmin.admin.query.application.dto.AdminSubAdminCandidateView(
-                                    a.publicId,
-                                    a.email.value,
-                                    a.name.value,
-                                    a.organization.value,
-                                    a.status
-                                )
-                                from AdminAccount a
-                                where a.festivalId is null
-                                  and a.role is null
-                                  and a.status = :status
-                                  and (
-                                      :keyword is null
-                                      or lower(a.email.value) like concat('%', :keyword, '%')
-                                      or lower(a.name.value) like concat('%', :keyword, '%')
-                                      or lower(a.organization.value) like concat('%', :keyword, '%')
-                                  )
-                                order by a.id asc
-                                """,
-                        AdminSubAdminCandidateView.class
+        QAdminAccount adminAccount = QAdminAccount.adminAccount;
+
+        return queryFactory
+                .select(Projections.constructor(
+                        AdminSubAdminCandidateView.class,
+                        adminAccount.publicId,
+                        adminAccount.email.value,
+                        adminAccount.name.value,
+                        adminAccount.organization.value,
+                        adminAccount.status
+                ))
+                .from(adminAccount)
+                .where(
+                        adminAccount.festivalId.isNull(),
+                        adminAccount.role.isNull(),
+                        adminAccount.status.eq(AdminStatus.ACTIVE),
+                        keywordContains(adminAccount, keyword)
                 )
-                .setParameter("status", AdminStatus.ACTIVE)
-                .setParameter("keyword", keyword)
-                .getResultList();
+                .orderBy(adminAccount.id.asc())
+                .fetch();
+    }
+
+    private BooleanExpression keywordContains(
+            QAdminAccount adminAccount,
+            String keyword
+    ) {
+        if (keyword == null) {
+            return null;
+        }
+
+        return adminAccount.email.value.containsIgnoreCase(keyword)
+                .or(adminAccount.name.value.containsIgnoreCase(keyword))
+                .or(adminAccount.organization.value.containsIgnoreCase(keyword));
     }
 }

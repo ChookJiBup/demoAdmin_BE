@@ -9,6 +9,7 @@ import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.admin.query.application.dto.AdminSubAdminView;
 import com.example.demoadmin.admin.query.repository.AdminSubAdminQueryRepository;
+import com.example.demoadmin.global.config.QuerydslConfig;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,7 +19,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
-@Import(AdminSubAdminQueryRepositoryImpl.class)
+@Import({AdminSubAdminQueryRepositoryImpl.class, QuerydslConfig.class})
 class AdminSubAdminQueryRepositoryTest {
 
     @Autowired
