@@ -9,6 +9,7 @@ import com.example.demoadmin.operator.command.domain.vo.FieldStaffPasswordHash;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffPhoneNumber;
 import com.example.demoadmin.operator.query.application.dto.FieldStaffView;
 import com.example.demoadmin.operator.query.repository.FieldStaffQueryRepository;
+import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,7 +26,7 @@ class FieldStaffQueryRepositoryTest {
     private FieldStaffQueryRepository queryRepository;
 
     @Autowired
-    private FieldStaffQueryJpaRepository jpaRepository;
+    private EntityManager entityManager;
 
     @Nested
     @DisplayName("findAllByFestivalId")
@@ -40,10 +41,10 @@ class FieldStaffQueryRepositoryTest {
             FieldStaffAccount otherFestival = fieldStaffAccount("other01", 2L);
             FieldStaffAccount deleted = fieldStaffAccount("deleted01", 1L);
             deleted.delete();
-            jpaRepository.save(first);
-            jpaRepository.save(second);
-            jpaRepository.save(otherFestival);
-            jpaRepository.save(deleted);
+            persist(first);
+            persist(second);
+            persist(otherFestival);
+            persist(deleted);
 
             // when
             var result = queryRepository.findAllByFestivalId(1L);
@@ -54,6 +55,7 @@ class FieldStaffQueryRepositoryTest {
                     .containsExactly("staff01", "staff02");
         }
 
+        @Test
         @DisplayName("현장 스태프가 없으면 빈 목록을 반환한다")
         void success_FindAllByFestivalId_EmptyBoundary() {
             // given
@@ -75,7 +77,7 @@ class FieldStaffQueryRepositoryTest {
         @DisplayName("같은 축제의 활성 현장 스태프를 UUID로 조회한다")
         void success_FindByFestivalIdAndPublicId() {
             // given
-            FieldStaffAccount saved = jpaRepository.save(fieldStaffAccount(
+            FieldStaffAccount saved = persist(fieldStaffAccount(
                     "staff01",
                     1L
             ));
@@ -98,7 +100,7 @@ class FieldStaffQueryRepositoryTest {
         @DisplayName("다른 축제의 현장 스태프는 조회 결과가 없다")
         void success_FindByFestivalIdAndPublicId_DifferentFestival() {
             // given
-            FieldStaffAccount saved = jpaRepository.save(fieldStaffAccount(
+            FieldStaffAccount saved = persist(fieldStaffAccount(
                     "staff01",
                     2L
             ));
@@ -119,7 +121,7 @@ class FieldStaffQueryRepositoryTest {
             // given
             FieldStaffAccount saved = fieldStaffAccount("staff01", 1L);
             saved.delete();
-            jpaRepository.save(saved);
+            persist(saved);
 
             // when
             var result = queryRepository.findByFestivalIdAndPublicId(
@@ -156,5 +158,11 @@ class FieldStaffQueryRepositoryTest {
                 LocalDateTime.of(2026, 10, 9, 0, 0),
                 LocalDateTime.of(2026, 10, 18, 23, 59)
         );
+    }
+
+    private FieldStaffAccount persist(FieldStaffAccount fieldStaffAccount) {
+        entityManager.persist(fieldStaffAccount);
+        entityManager.flush();
+        return fieldStaffAccount;
     }
 }

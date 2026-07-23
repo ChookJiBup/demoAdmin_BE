@@ -9,6 +9,7 @@ import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.admin.query.application.dto.AdminSubAdminView;
 import com.example.demoadmin.admin.query.repository.AdminSubAdminQueryRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ class AdminSubAdminQueryRepositoryTest {
     private AdminSubAdminQueryRepository queryRepository;
 
     @Autowired
-    private AdminSubAdminQueryJpaRepository jpaRepository;
+    private EntityManager entityManager;
 
     @Nested
     @DisplayName("searchInvitedSubAdmins")
@@ -42,12 +43,12 @@ class AdminSubAdminQueryRepositoryTest {
             AdminAccount owner = owner("owner@mapo.go.kr", 1L);
             AdminAccount deleted = subAdmin("deleted@mapo.go.kr", 1L, invitedByAdminId);
             deleted.withdraw();
-            jpaRepository.save(first);
-            jpaRepository.save(second);
-            jpaRepository.save(otherFestival);
-            jpaRepository.save(otherInviter);
-            jpaRepository.save(owner);
-            jpaRepository.save(deleted);
+            persist(first);
+            persist(second);
+            persist(otherFestival);
+            persist(otherInviter);
+            persist(owner);
+            persist(deleted);
 
             // when
             var result = queryRepository.searchInvitedSubAdmins(
@@ -67,14 +68,14 @@ class AdminSubAdminQueryRepositoryTest {
         void success_SearchInvitedSubAdmins_ByKeyword() {
             // given
             Long invitedByAdminId = 1L;
-            jpaRepository.save(subAdmin(
+            persist(subAdmin(
                     "sub1@mapo.go.kr",
                     "김검색",
                     "마포구청 소속",
                     1L,
                     invitedByAdminId
             ));
-            jpaRepository.save(subAdmin(
+            persist(subAdmin(
                     "sub2@mapo.go.kr",
                     "이관리",
                     "서울시 소속",
@@ -123,7 +124,7 @@ class AdminSubAdminQueryRepositoryTest {
         void success_FindInvitedSubAdmin() {
             // given
             Long invitedByAdminId = 1L;
-            AdminAccount saved = jpaRepository.save(subAdmin(
+            AdminAccount saved = persist(subAdmin(
                     "sub@mapo.go.kr",
                     1L,
                     invitedByAdminId
@@ -149,7 +150,7 @@ class AdminSubAdminQueryRepositoryTest {
         void success_FindInvitedSubAdmin_DifferentFestival() {
             // given
             Long invitedByAdminId = 1L;
-            AdminAccount saved = jpaRepository.save(subAdmin(
+            AdminAccount saved = persist(subAdmin(
                     "sub@mapo.go.kr",
                     2L,
                     invitedByAdminId
@@ -173,7 +174,7 @@ class AdminSubAdminQueryRepositoryTest {
             Long invitedByAdminId = 1L;
             AdminAccount saved = subAdmin("sub@mapo.go.kr", 1L, invitedByAdminId);
             saved.withdraw();
-            jpaRepository.save(saved);
+            persist(saved);
 
             // when
             var result = queryRepository.findInvitedSubAdmin(
@@ -226,5 +227,11 @@ class AdminSubAdminQueryRepositoryTest {
                 AdminPasswordHash.of("encoded-password"),
                 invitedByAdminId
         );
+    }
+
+    private AdminAccount persist(AdminAccount adminAccount) {
+        entityManager.persist(adminAccount);
+        entityManager.flush();
+        return adminAccount;
     }
 }

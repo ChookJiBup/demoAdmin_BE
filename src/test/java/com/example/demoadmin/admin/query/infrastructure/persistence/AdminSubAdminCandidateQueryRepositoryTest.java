@@ -9,6 +9,7 @@ import com.example.demoadmin.admin.command.domain.vo.AdminOrganization;
 import com.example.demoadmin.admin.command.domain.vo.AdminPasswordHash;
 import com.example.demoadmin.admin.query.application.dto.AdminSubAdminCandidateView;
 import com.example.demoadmin.admin.query.repository.AdminSubAdminCandidateQueryRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ class AdminSubAdminCandidateQueryRepositoryTest {
     private AdminSubAdminCandidateQueryRepository queryRepository;
 
     @Autowired
-    private AdminSubAdminCandidateQueryJpaRepository jpaRepository;
+    private EntityManager entityManager;
 
     @Nested
     @DisplayName("searchCandidates")
@@ -34,13 +35,13 @@ class AdminSubAdminCandidateQueryRepositoryTest {
         @DisplayName("아직 축제에 배정되지 않은 활성 관리자만 조회한다")
         void success_SearchCandidates_ActiveUnassignedAdmins() {
             // given
-            jpaRepository.save(admin("candidate1@mapo.go.kr", "김후보", "마포구청 소속"));
-            jpaRepository.save(admin("candidate2@mapo.go.kr", "이후보", "서울시 소속"));
-            jpaRepository.save(owner("owner@mapo.go.kr", 1L));
-            jpaRepository.save(subAdmin("sub@mapo.go.kr", 1L, 1L));
+            persist(admin("candidate1@mapo.go.kr", "김후보", "마포구청 소속"));
+            persist(admin("candidate2@mapo.go.kr", "이후보", "서울시 소속"));
+            persist(owner("owner@mapo.go.kr", 1L));
+            persist(subAdmin("sub@mapo.go.kr", 1L, 1L));
             AdminAccount deleted = admin("deleted@mapo.go.kr", "박후보", "마포구청 소속");
             deleted.withdraw();
-            jpaRepository.save(deleted);
+            persist(deleted);
 
             // when
             var result = queryRepository.searchCandidates(null);
@@ -58,8 +59,8 @@ class AdminSubAdminCandidateQueryRepositoryTest {
         @DisplayName("검색어가 있으면 이메일, 이름, 조직으로 필터링한다")
         void success_SearchCandidates_ByKeyword() {
             // given
-            jpaRepository.save(admin("candidate1@mapo.go.kr", "김후보", "마포구청 소속"));
-            jpaRepository.save(admin("candidate2@seoul.go.kr", "이검색", "서울시 소속"));
+            persist(admin("candidate1@mapo.go.kr", "김후보", "마포구청 소속"));
+            persist(admin("candidate2@seoul.go.kr", "이검색", "서울시 소속"));
 
             // when
             var result = queryRepository.searchCandidates("검색");
@@ -120,5 +121,11 @@ class AdminSubAdminCandidateQueryRepositoryTest {
                 AdminPasswordHash.of("encoded-password"),
                 invitedByAdminId
         );
+    }
+
+    private AdminAccount persist(AdminAccount adminAccount) {
+        entityManager.persist(adminAccount);
+        entityManager.flush();
+        return adminAccount;
     }
 }
