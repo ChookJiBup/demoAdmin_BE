@@ -20,7 +20,8 @@ public enum SuccessCode {
     FIELD_STAFF_READ_SUCCESS(22004, "현장 스태프 계정 조회가 완료되었습니다."),
     FESTIVAL_DASHBOARD_READ_SUCCESS(23000, "축제 대시보드 조회가 완료되었습니다."),
     FESTIVAL_REPORT_SUMMARY_READ_SUCCESS(24000, "축제 결과 보고서 요약 조회가 완료되었습니다."),
-    FIELD_STAFF_LOGIN_SUCCESS(25000, "현장 스태프 로그인에 성공했습니다.");
+    FIELD_STAFF_LOGIN_SUCCESS(25000, "현장 스태프 로그인에 성공했습니다."),
+    INTERNAL_FESTIVAL_READ_SUCCESS(26000, "사용자 서버용 축제 목록 조회가 완료되었습니다.");
 
     private final int code;
     private final String message;
