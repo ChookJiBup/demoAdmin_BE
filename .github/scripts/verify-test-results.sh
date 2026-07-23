@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-project_name="$(basename "$PWD")"
+project_name="$(
+  sed -nE "s/^rootProject\.name[[:space:]]*=[[:space:]]*['\"]([^'\"]+)['\"].*/\1/p" \
+    settings.gradle \
+    | head -n 1
+)"
+
+if [[ -z "$project_name" ]]; then
+  project_name="$(basename "$PWD")"
+fi
 result_dir=""
 result_files=()
 
@@ -23,9 +31,15 @@ for candidate_dir in "${candidate_dirs[@]}"; do
 done
 
 if [[ -z "$result_dir" ]]; then
-  echo "Gradle 테스트 결과 XML 파일이 없습니다."
-  printf '확인한 경로: %s\n' "${candidate_dirs[@]}"
-  exit 1
+  mapfile -t result_files < <(
+    find .. ../.. -path "*/test-results/test/TEST-*.xml" -type f
+  )
+
+  if [[ "${#result_files[@]}" -eq 0 ]]; then
+    echo "Gradle 테스트 결과 XML 파일이 없습니다."
+    printf '확인한 경로: %s\n' "${candidate_dirs[@]}"
+    exit 1
+  fi
 fi
 
 test_count="$(
