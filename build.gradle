@@ -9,6 +9,7 @@ version = '0.0.1-SNAPSHOT'
 
 def externalBuildRoot = rootDir.parentFile?.parentFile ?: rootDir
 layout.buildDirectory = file("${externalBuildRoot}/.gradle-build/${rootProject.name}")
+def querydslVersion = '5.1.0'
 
 java {
 	toolchain {
@@ -27,9 +28,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+	implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
+	annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+	annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-data-jpa-test'
 	testImplementation 'org.springframework.security:spring-security-test'
