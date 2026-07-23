@@ -39,19 +39,7 @@ jobs:
             BASE_SHA="${{ github.event.before }}"
           fi
 
-          if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then
-            BASE_SHA="$(git rev-list --max-parents=0 HEAD)"
-          fi
-
-          CHANGED_FILES="$(git diff --name-only "$BASE_SHA" HEAD)"
-          MAIN_CHANGED="$(printf '%s\n' "$CHANGED_FILES" | grep -E '^src/main/java/.*\.java$' || true)"
-          TEST_CHANGED="$(printf '%s\n' "$CHANGED_FILES" | grep -E '^src/test/java/.*Test\.java$' || true)"
-
-          if [[ -n "$MAIN_CHANGED" && -z "$TEST_CHANGED" ]]; then
-            echo "src/main/java 변경이 있지만 테스트 변경이 없습니다."
-            echo "$MAIN_CHANGED"
-            exit 1
-          fi
+          bash .github/scripts/check-test-requirements.sh "$BASE_SHA"
 
       - name: Grant execute permission for Gradle
         run: chmod +x ./gradlew
