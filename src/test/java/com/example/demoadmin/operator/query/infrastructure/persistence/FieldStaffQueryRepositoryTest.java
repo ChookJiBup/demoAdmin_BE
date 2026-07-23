@@ -7,6 +7,7 @@ import com.example.demoadmin.operator.command.domain.vo.FieldStaffLoginId;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffName;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffPasswordHash;
 import com.example.demoadmin.operator.command.domain.vo.FieldStaffPhoneNumber;
+import com.example.demoadmin.global.config.QuerydslConfig;
 import com.example.demoadmin.operator.query.application.dto.FieldStaffView;
 import com.example.demoadmin.operator.query.repository.FieldStaffQueryRepository;
 import jakarta.persistence.EntityManager;
@@ -19,7 +20,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
-@Import(FieldStaffQueryRepositoryImpl.class)
+@Import({FieldStaffQueryRepositoryImpl.class, QuerydslConfig.class})
 class FieldStaffQueryRepositoryTest {
 
     @Autowired

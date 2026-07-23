@@ -1,9 +1,11 @@
 package com.example.demoadmin.operator.query.infrastructure.persistence;
 
+import com.example.demoadmin.operator.command.domain.QFieldStaffAccount;
 import com.example.demoadmin.operator.command.domain.FieldStaffStatus;
 import com.example.demoadmin.operator.query.application.dto.FieldStaffView;
 import com.example.demoadmin.operator.query.repository.FieldStaffQueryRepository;
-import jakarta.persistence.EntityManager;
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,34 +16,31 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class FieldStaffQueryRepositoryImpl implements FieldStaffQueryRepository {
 
-    private static final String FIELD_STAFF_SELECT = """
-            select new com.example.demoadmin.operator.query.application.dto.FieldStaffView(
-                f.publicId,
-                f.loginId.value,
-                f.name.value,
-                f.phoneNumber.value,
-                f.validFrom,
-                f.validUntil,
-                f.status
-            )
-            from FieldStaffAccount f
-            """;
-
-    private final EntityManager entityManager;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public List<FieldStaffView> findAllByFestivalId(Long festivalId) {
-        return entityManager.createQuery(
-                        FIELD_STAFF_SELECT + """
-                                where f.festivalId = :festivalId
-                                  and f.status = :status
-                                order by f.id asc
-                                """,
-                        FieldStaffView.class
+        QFieldStaffAccount fieldStaffAccount =
+                QFieldStaffAccount.fieldStaffAccount;
+
+        return queryFactory
+                .select(Projections.constructor(
+                        FieldStaffView.class,
+                        fieldStaffAccount.publicId,
+                        fieldStaffAccount.loginId.value,
+                        fieldStaffAccount.name.value,
+                        fieldStaffAccount.phoneNumber.value,
+                        fieldStaffAccount.validFrom,
+                        fieldStaffAccount.validUntil,
+                        fieldStaffAccount.status
+                ))
+                .from(fieldStaffAccount)
+                .where(
+                        fieldStaffAccount.festivalId.eq(festivalId),
+                        fieldStaffAccount.status.eq(FieldStaffStatus.ACTIVE)
                 )
-                .setParameter("festivalId", festivalId)
-                .setParameter("status", FieldStaffStatus.ACTIVE)
-                .getResultList();
+                .orderBy(fieldStaffAccount.id.asc())
+                .fetch();
     }
 
     @Override
@@ -49,18 +48,28 @@ public class FieldStaffQueryRepositoryImpl implements FieldStaffQueryRepository 
             Long festivalId,
             UUID publicId
     ) {
-        return entityManager.createQuery(
-                        FIELD_STAFF_SELECT + """
-                                where f.festivalId = :festivalId
-                                  and f.publicId = :publicId
-                                  and f.status = :status
-                                """,
-                        FieldStaffView.class
+        QFieldStaffAccount fieldStaffAccount =
+                QFieldStaffAccount.fieldStaffAccount;
+
+        FieldStaffView result = queryFactory
+                .select(Projections.constructor(
+                        FieldStaffView.class,
+                        fieldStaffAccount.publicId,
+                        fieldStaffAccount.loginId.value,
+                        fieldStaffAccount.name.value,
+                        fieldStaffAccount.phoneNumber.value,
+                        fieldStaffAccount.validFrom,
+                        fieldStaffAccount.validUntil,
+                        fieldStaffAccount.status
+                ))
+                .from(fieldStaffAccount)
+                .where(
+                        fieldStaffAccount.festivalId.eq(festivalId),
+                        fieldStaffAccount.publicId.eq(publicId),
+                        fieldStaffAccount.status.eq(FieldStaffStatus.ACTIVE)
                 )
-                .setParameter("festivalId", festivalId)
-                .setParameter("publicId", publicId)
-                .setParameter("status", FieldStaffStatus.ACTIVE)
-                .getResultStream()
-                .findFirst();
+                .fetchOne();
+
+        return Optional.ofNullable(result);
     }
 }
